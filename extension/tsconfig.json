@@ -1,0 +1,22 @@
+{
+  "extends": "../shared/tsconfig.json",
+  "compilerOptions": {
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "jsx": "react-jsx",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "paths": {
+      "@/*": ["./components/*", "./hooks/*", "./utils/*", "./lib/*"],
+      "@shared/*": ["../shared/*"]
+    }
+  },
+  "include": [
+    "entrypoints/**/*",
+    "components/**/*",
+    "hooks/**/*",
+    "utils/**/*",
+    "lib/**/*",
+    "assets/**/*"
+  ],
+  "exclude": ["node_modules", ".output", ".wxt"]
+}

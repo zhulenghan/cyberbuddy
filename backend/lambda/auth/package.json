@@ -1,0 +1,23 @@
+{
+  "name": "@cyberbuddy/lambda-auth",
+  "version": "1.0.0",
+  "description": "Authentication Lambda for Cyber Buddy",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "build": "tsc && cp -r node_modules dist/",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@aws-sdk/client-cognito-identity-provider": "^3.699.0",
+    "@aws-sdk/client-dynamodb": "^3.699.0",
+    "@aws-sdk/lib-dynamodb": "^3.699.0",
+    "uuid": "^11.0.4"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.1",
+    "@types/aws-lambda": "^8.10.145",
+    "@types/uuid": "^10.0.0",
+    "typescript": "^5.9.2"
+  }
+}

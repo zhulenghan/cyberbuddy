@@ -1,0 +1,51 @@
+/**
+ * Pet-related types
+ */
+
+export enum PetState {
+  IDLE = 'idle',
+  HAPPY = 'happy',
+  FOCUSED = 'focused',
+  TIRED = 'tired',
+  EXCITED = 'excited',
+}
+
+export interface PetImages {
+  idle: string
+  happy: string
+  focused: string
+  tired: string
+  excited: string
+}
+
+export interface Pet {
+  id: string
+  prompt: string
+  images: PetImages
+  style: 'pixel' | '3d'
+  createdAt: string
+  isActive: boolean
+}
+
+export interface PetGenerationRequest {
+  prompt: string
+  style?: 'pixel' | '3d'
+}
+
+export interface PetGenerationResponse {
+  petId: string
+  prompt: string
+  images: PetImages
+  createdAt: string
+}
+
+export interface Position {
+  x: number
+  y: number
+}
+
+export interface PetBehavior {
+  state: PetState
+  message?: string
+  duration?: number
+}

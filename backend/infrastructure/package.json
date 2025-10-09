@@ -1,0 +1,27 @@
+{
+  "name": "@cyberbuddy/infrastructure",
+  "version": "1.0.0",
+  "description": "AWS CDK Infrastructure for Cyber Buddy",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "cdk": "dotenv -e ../../.env -- cdk",
+    "deploy": "dotenv -e ../../.env -- cdk deploy --all --require-approval never",
+    "destroy": "dotenv -e ../../.env -- cdk destroy --all",
+    "synth": "dotenv -e ../../.env -- cdk synth",
+    "diff": "dotenv -e ../../.env -- cdk diff"
+  },
+  "dependencies": {
+    "aws-cdk-lib": "^2.166.0",
+    "constructs": "^10.4.2",
+    "@aws-sdk/client-cognito-identity-provider": "^3.699.0",
+    "dotenv": "^16.4.7"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.1",
+    "typescript": "^5.9.2",
+    "aws-cdk": "^2.166.0",
+    "dotenv-cli": "^7.4.2"
+  }
+}
