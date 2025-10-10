@@ -20,7 +20,14 @@ export default defineConfig({
       'https://*.cyberbuddy.com/*',
       'https://*.execute-api.us-east-1.amazonaws.com/*',
       '<all_urls>'
-    ]
+    ],
+    oauth2: {
+      client_id: '1046077390083-jvf7n10g9r0ffrsl56daea7r0qulmq2k.apps.googleusercontent.com',
+      scopes: [
+        'https://www.googleapis.com/auth/userinfo.email',
+        'https://www.googleapis.com/auth/userinfo.profile'
+      ]
+    }
   },
 
   // Vite configuration

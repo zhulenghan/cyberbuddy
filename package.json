@@ -10,7 +10,7 @@
     "shared"
   ],
   "scripts": {
-    "dev:extension": "npm run dev --workspace=extension",
+    "dev": "npm run dev --workspace=extension",
     "build:extension": "npm run build --workspace=extension",
     "build:shared": "npm run build --workspace=shared",
     "build:lambda": "npm run build --workspace=backend/lambda/auth && npm run build --workspace=backend/lambda/pets && npm run build --workspace=backend/lambda/activities",

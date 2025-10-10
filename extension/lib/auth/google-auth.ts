@@ -1,5 +1,8 @@
 /**
- * Google OAuth Authentication using chrome.identity.launchWebAuthFlow
+ * Google OAuth Authentication
+ *
+ * ONLY uses chrome.identity.getAuthToken (Chrome's built-in auth)
+ * Requires user to be signed into Chrome with a Google account
  */
 
 import { CONFIG } from '@/lib/config'
@@ -15,47 +18,23 @@ export interface GoogleUserInfo {
 }
 
 /**
- * Get Google OAuth token using launchWebAuthFlow
- * This works with Web Application OAuth clients
+ * Get Google OAuth token using getAuthToken
+ * This uses Chrome's built-in token management and the user's Chrome Google account
+ *
+ * @param interactive - If true, shows consent UI when needed. If false, fails silently.
  */
-export async function getGoogleToken(): Promise<string> {
-  const redirectUri = chrome.identity.getRedirectURL()
-
-  const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth')
-  authUrl.searchParams.set('client_id', CONFIG.GOOGLE_CLIENT_ID)
-  authUrl.searchParams.set('response_type', 'token')
-  authUrl.searchParams.set('redirect_uri', redirectUri)
-  authUrl.searchParams.set('scope', [
-    'https://www.googleapis.com/auth/userinfo.email',
-    'https://www.googleapis.com/auth/userinfo.profile'
-  ].join(' '))
-
+export async function getGoogleToken(interactive: boolean = true): Promise<string> {
   return new Promise((resolve, reject) => {
-    chrome.identity.launchWebAuthFlow(
-      {
-        url: authUrl.toString(),
-        interactive: true,
-      },
-      (responseUrl) => {
+    chrome.identity.getAuthToken(
+      { interactive },
+      (token) => {
         if (chrome.runtime.lastError) {
           reject(new Error(chrome.runtime.lastError.message))
           return
         }
 
-        if (!responseUrl) {
-          reject(new Error('No response URL'))
-          return
-        }
-
-        // Extract access token from response URL
-        // Format: redirect_uri#access_token=TOKEN&token_type=Bearer&expires_in=3599
-        const url = new URL(responseUrl)
-        const hash = url.hash.substring(1) // Remove #
-        const params = new URLSearchParams(hash)
-        const token = params.get('access_token')
-
         if (!token) {
-          reject(new Error('No access token in response'))
+          reject(new Error('No access token received'))
           return
         }
 
@@ -84,11 +63,21 @@ export async function getGoogleUserInfo(accessToken: string): Promise<GoogleUser
 
 /**
  * Remove cached Google token (logout)
+ * Removes the token from Chrome's cache
  */
 export async function removeGoogleToken(token: string): Promise<void> {
-  // launchWebAuthFlow doesn't cache tokens like getAuthToken
-  // So we just need to revoke on Google's server
-  return Promise.resolve()
+  return new Promise((resolve, reject) => {
+    chrome.identity.removeCachedAuthToken(
+      { token },
+      () => {
+        if (chrome.runtime.lastError) {
+          reject(new Error(chrome.runtime.lastError.message))
+          return
+        }
+        resolve()
+      }
+    )
+  })
 }
 
 /**
@@ -106,16 +95,26 @@ export async function revokeGoogleToken(token: string): Promise<void> {
 /**
  * Complete Google OAuth flow
  * Returns Google token and user info
+ *
+ * ONLY uses chrome.identity.getAuthToken
+ * Requires user to be signed into Chrome with a Google account
  */
 export async function googleLogin(): Promise<{
   token: string
   userInfo: GoogleUserInfo
 }> {
-  // Get Google OAuth token
-  const token = await getGoogleToken()
+  try {
+    // Get Google OAuth token via Chrome's built-in auth
+    console.log('Authenticating with Chrome account...')
+    const token = await getGoogleToken()
+    console.log('✓ Authentication successful')
 
-  // Get user info
-  const userInfo = await getGoogleUserInfo(token)
+    // Get user info
+    const userInfo = await getGoogleUserInfo(token)
 
-  return { token, userInfo }
+    return { token, userInfo }
+  } catch (error) {
+    console.error('Authentication failed:', error)
+    throw new Error('Please sign into Chrome with a Google account to use Cyber Buddy.')
+  }
 }

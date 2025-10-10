@@ -6,13 +6,20 @@
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "paths": {
-      "@/*": ["./components/*", "./hooks/*", "./utils/*", "./lib/*"],
+      "@/*": ["./"],
+      "@/components/*": ["./components/*"],
+      "@/hooks/*": ["./hooks/*"],
+      "@/utils/*": ["./utils/*"],
+      "@/lib/*": ["./lib/*"],
+      "@/pages/*": ["./pages/*"],
+      "@/assets/*": ["./assets/*"],
       "@shared/*": ["../shared/*"]
     }
   },
   "include": [
     "entrypoints/**/*",
     "components/**/*",
+    "pages/**/*",
     "hooks/**/*",
     "utils/**/*",
     "lib/**/*",
