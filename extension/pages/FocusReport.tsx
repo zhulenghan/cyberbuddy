@@ -8,112 +8,121 @@ import { useActivityTracker } from '@/hooks/useActivityTracker'
 
 export default function FocusReport() {
   const navigate = useNavigate()
-  const { todayStats } = useActivityTracker()
+  const { todayStats, getStatsForDate } = useActivityTracker()
 
-  // Mock data for demonstration
-  const mockReport = {
-    monthlyStats: [
-      { day: '01', duration: 60 },
-      { day: '02', duration: 45 },
-      { day: '03', duration: 60 },
-      { day: '04', duration: 45 },
-      { day: '05', duration: 75 },
-      { day: '06', duration: 45 },
-      { day: '07', duration: 90 },
-    ],
-    weeklyActive: [1, 1, 1, 1, 1, 0, 0],
-    wordCount: 1234,
-    topWebpages: ['#productivity', '#work', '#research'],
-    focusPersona: 'Deep Thinker',
+  // TODO: Implement proper data fetching from backend
+  // For now, use today's stats and provide sensible defaults
+  const report = {
+    monthlyStats: [],
+    weeklyActive: [],
+    wordCount: 0,
+    topWebpages: [],
+    focusPersona: 'Getting Started',
   }
 
   return (
-    <div className="min-h-[600px] w-[420px] bg-white flex flex-col pb-20 overflow-y-auto">
-      {/* Header */}
-      <Header />
-
-      {/* Title and Pet */}
-      <div className="px-6 flex items-start justify-between mb-4">
-        <div>
-          <h1 className="text-[30px] font-bold mb-2">FOCUS REPORT</h1>
-          <p className="text-[10px] font-bold">
-            Congrats! You reached your focus goal!
-          </p>
-        </div>
-        <div className="w-[121px] h-[114px] bg-vibe-gray-700 rounded flex items-center justify-center">
-          <p className="text-[15px] text-center px-2">
-            Pet figure graphic (pet holding trophy sth)
-          </p>
-        </div>
+    <div className="h-[600px] w-[400px] bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 flex flex-col overflow-hidden relative">
+      {/* Background decorations */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+        <div className="absolute -top-20 -right-20 w-64 h-64 bg-purple-300/30 rounded-full blur-3xl"></div>
+        <div className="absolute -bottom-20 -left-20 w-48 h-48 bg-indigo-300/30 rounded-full blur-3xl"></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 bg-pink-300/20 rounded-full blur-3xl"></div>
       </div>
 
-      {/* Monthly Stats */}
-      <div className="px-4 mb-6">
-        <div className="bg-vibe-gray-500 rounded p-4 shadow-md">
-          <div className="mb-2">
-            <p className="text-[10px] font-bold">Monthly Stats</p>
-            <p className="text-sm font-bold">October</p>
-          </div>
+      <div className="relative z-10 flex flex-col h-full px-5 py-4 gap-3">
+        {/* Header */}
+        <div className="flex-shrink-0">
+          <Header />
+        </div>
 
-          {/* Bar Chart using Recharts */}
-          <MonthlyBarChart
-            data={mockReport.monthlyStats}
-            currentDay="07"
+        {/* Title and Pet */}
+        <div className="flex-shrink-0 flex items-start justify-between">
+          <div>
+            <h1 className="text-[26px] font-bold mb-1 text-gray-800">FOCUS REPORT</h1>
+            <p className="text-[10px] font-bold text-gray-600">
+              Congrats! You reached your focus goal!
+            </p>
+          </div>
+          <div className="w-[100px] h-[100px] bg-white/70 backdrop-blur-sm rounded-2xl flex items-center justify-center shadow-lg border border-white/50">
+            <p className="text-[13px] text-center px-2 font-semibold text-gray-700">
+              Pet Trophy
+            </p>
+          </div>
+        </div>
+
+        {/* Monthly Stats */}
+        <div className="flex-shrink-0">
+          <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-4 shadow-lg border border-white/50">
+            <div className="mb-2">
+              <p className="text-[10px] font-bold text-gray-700">Monthly Stats</p>
+              <p className="text-sm font-bold text-gray-800">October</p>
+            </div>
+
+            {/* Bar Chart using Recharts */}
+            <MonthlyBarChart
+              data={report.monthlyStats}
+              currentDay={new Date().getDate().toString().padStart(2, '0')}
+            />
+          </div>
+        </div>
+
+        {/* Weekly Activity */}
+        <div className="flex-shrink-0">
+          <WeeklyActivityDots
+            weekData={report.weeklyActive}
+            startDate=""
+            endDate=""
           />
         </div>
-      </div>
 
-      {/* Weekly Activity */}
-      <div className="px-4 mb-6">
-        <WeeklyActivityDots
-          weekData={mockReport.weeklyActive}
-          startDate="10/03"
-          endDate="10/09"
-        />
-      </div>
-
-      {/* Stats and Persona */}
-      <div className="px-4 mb-6">
-        <div className="bg-vibe-gray-500 rounded p-4 shadow-md flex gap-4">
-          <div className="flex-1">
-            <p className="text-[10px] font-bold mb-2">
-              Word count: {mockReport.wordCount}
-            </p>
-            <p className="text-[10px] font-bold mb-2">
-              Webpage used: {mockReport.topWebpages.join(' ')}
-            </p>
-            <p className="text-[10px] font-bold">
-              Your have surpassed 80% people!
-            </p>
-          </div>
-          <div className="text-center">
-            <p className="text-xs font-bold mb-2">Your Focus Persona:</p>
-            <p className="text-xl font-bold">&quot;{mockReport.focusPersona}&quot;</p>
+        {/* Stats and Persona */}
+        <div className="flex-shrink-0">
+          <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-4 shadow-lg border border-white/50 flex gap-3">
+            <div className="flex-1">
+              <p className="text-[10px] font-bold mb-1.5 text-gray-700">
+                Word count: {report.wordCount}
+              </p>
+              <p className="text-[10px] font-bold mb-1.5 text-gray-700">
+                Webpage used: {report.topWebpages.length > 0 ? report.topWebpages.join(' ') : 'N/A'}
+              </p>
+              <p className="text-[10px] font-bold text-gray-600">
+                Start tracking to see your stats!
+              </p>
+            </div>
+            <div className="text-center">
+              <p className="text-[10px] font-bold mb-1 text-gray-700">Your Focus Persona:</p>
+              <p className="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-purple-500">&quot;{report.focusPersona}&quot;</p>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Action Buttons */}
-      <div className="px-4 space-y-3 mb-6">
-        <Button
-          onClick={() => navigate('/home')}
-          className="w-full h-[25px] bg-vibe-gray-700 hover:bg-vibe-gray-800 text-[11px] font-bold shadow-md"
-        >
-          Back
-        </Button>
-        <Button className="w-full h-[25px] bg-vibe-gray-700 hover:bg-vibe-gray-800 text-[11px] font-bold shadow-md">
-          Share
-        </Button>
-        <Button
-          onClick={() => navigate('/focus-setup')}
-          className="w-full h-[25px] bg-vibe-gray-700 hover:bg-vibe-gray-800 text-[11px] font-bold shadow-md"
-        >
-          Start new!
-        </Button>
-      </div>
+        {/* Spacer */}
+        <div className="flex-1 min-h-0"></div>
 
-      {/* Footer Navigation */}
-      <Footer />
+        {/* Action Buttons */}
+        <div className="flex-shrink-0 space-y-2">
+          <Button
+            onClick={() => navigate('/home')}
+            className="w-full h-[28px] bg-white/80 hover:bg-white text-gray-800 text-[11px] font-bold shadow-md rounded-xl border border-white/50"
+          >
+            Back
+          </Button>
+          <Button className="w-full h-[28px] bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white text-[11px] font-bold shadow-md rounded-xl">
+            Share
+          </Button>
+          <Button
+            onClick={() => navigate('/focus-setup')}
+            className="w-full h-[28px] bg-white/80 hover:bg-white text-gray-800 text-[11px] font-bold shadow-md rounded-xl border border-white/50"
+          >
+            Start new!
+          </Button>
+        </div>
+
+        {/* Footer Navigation */}
+        <div className="flex-shrink-0">
+          <Footer />
+        </div>
+      </div>
     </div>
   )
 }

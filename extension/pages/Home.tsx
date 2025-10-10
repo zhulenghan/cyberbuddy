@@ -5,11 +5,13 @@ import { Footer } from '@/components/layout/Footer'
 import { PetGrid } from '@/components/pet/PetCard'
 import { usePet } from '@/hooks/usePet'
 import { useActivityTracker } from '@/hooks/useActivityTracker'
+import { useAuth } from '@/hooks/useAuth'
 
 export default function Home() {
   const navigate = useNavigate()
   const { currentPet, availablePets, selectPet } = usePet()
   const { todayStats } = useActivityTracker()
+  const { user } = useAuth()
   const [selectedActivities, setSelectedActivities] = useState<string[]>([])
 
   const activities = [
@@ -26,70 +28,83 @@ export default function Home() {
     )
   }
 
-  // Mock user data - will be replaced with real data
-  const userData = {
-    spaceId: '123456789',
-    userId: 'KitaGuan',
-  }
-
   return (
-    <div className="min-h-[600px] w-[420px] bg-white flex flex-col overflow-y-auto pb-20">
-      {/* Header */}
-      <div className="px-6 py-4 flex items-center justify-between">
-        <div>
-          <p className="text-[15px] font-bold">Space ID: {userData.spaceId}</p>
-          <p className="text-[15px] font-bold">User ID: {userData.userId}</p>
-        </div>
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-xs bg-vibe-gray-700 hover:bg-vibe-gray-800"
-          >
-            Share this extension
-          </Button>
-          <div className="w-[54px] h-[54px] rounded-full bg-vibe-gray-600 flex items-center justify-center">
-            <span className="text-[10px] font-bold">sign in</span>
-          </div>
-        </div>
+    <div className="h-[600px] w-[400px] bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 flex flex-col overflow-hidden relative">
+      {/* Background decorations */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+        <div className="absolute -top-20 -right-20 w-64 h-64 bg-purple-300/30 rounded-full blur-3xl"></div>
+        <div className="absolute -bottom-20 -left-20 w-48 h-48 bg-indigo-300/30 rounded-full blur-3xl"></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 bg-pink-300/20 rounded-full blur-3xl"></div>
       </div>
 
-      {/* Activities Section */}
-      <div className="px-6 py-8">
-        <div className="bg-vibe-gray-500 rounded p-6 mb-6">
-          <h2 className="text-xs font-bold text-center mb-4">
-            YOUR ACTIVITIES TODAY
-          </h2>
-          <div className="grid grid-cols-3 gap-3 max-w-md mx-auto">
-            {activities.map((activity) => (
-              <button
-                key={activity.id}
-                onClick={() => toggleActivity(activity.id)}
-                className={`h-[30px] rounded flex items-center justify-center text-xs font-normal transition-colors ${
-                  selectedActivities.includes(activity.id)
-                    ? 'bg-vibe-gray-900 text-white'
-                    : 'bg-vibe-gray-700'
-                }`}
-              >
-                {activity.label}
-              </button>
-            ))}
+      <div className="relative z-10 flex flex-col h-full px-6 py-4 gap-3">
+        {/* Header */}
+        <div className="flex-shrink-0 flex items-center justify-between">
+          <div>
+            <p className="text-[15px] font-bold text-gray-800">User: {user?.name || user?.email || 'Guest'}</p>
+            <p className="text-[10px] text-gray-600">{user?.email}</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-xs bg-white/80 hover:bg-white shadow-md rounded-lg px-3 py-1.5 font-semibold text-gray-700"
+            >
+              Share
+            </Button>
+            {user?.picture ? (
+              <img
+                src={user.picture}
+                alt={user.name || 'User'}
+                className="w-[48px] h-[48px] rounded-full border-2 border-white shadow-lg"
+              />
+            ) : (
+              <div className="w-[48px] h-[48px] rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center border-2 border-white shadow-lg">
+                <span className="text-sm font-bold text-white">
+                  {user?.name?.charAt(0) || 'U'}
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Activities Section */}
+        <div className="flex-shrink-0">
+          <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-5 shadow-lg border border-white/50">
+            <h2 className="text-xs font-bold text-center mb-3 text-gray-700">
+              YOUR ACTIVITIES TODAY
+            </h2>
+            <div className="grid grid-cols-3 gap-2">
+              {activities.map((activity) => (
+                <button
+                  key={activity.id}
+                  onClick={() => toggleActivity(activity.id)}
+                  className={`h-[32px] rounded-lg flex items-center justify-center text-[10px] font-semibold transition-all ${
+                    selectedActivities.includes(activity.id)
+                      ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-md'
+                      : 'bg-white/80 text-gray-700 hover:bg-white'
+                  }`}
+                >
+                  {activity.label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
         {/* Generate Report Button */}
-        <div className="text-center mb-8">
+        <div className="flex-shrink-0 text-center">
           <Button
             onClick={() => navigate('/focus-report')}
-            className="bg-vibe-gray-400 hover:bg-vibe-gray-500 text-black text-[15px] font-bold h-auto py-3 px-8"
+            className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 text-white text-sm font-bold h-auto py-2.5 px-8 rounded-xl shadow-lg"
           >
             Generate Report
           </Button>
         </div>
 
         {/* Pet Collections */}
-        <div>
-          <h2 className="text-[15px] font-bold text-center mb-6">
+        <div className="flex-shrink-0">
+          <h2 className="text-sm font-bold text-center mb-3 text-gray-800">
             Your Cyber Buddy Collections
           </h2>
           <PetGrid
@@ -106,26 +121,31 @@ export default function Home() {
           />
         </div>
 
+        {/* Spacer */}
+        <div className="flex-1 min-h-0"></div>
+
         {/* Meet with Pet Button */}
-        <div className="mt-8 text-center">
-          <Button className="bg-vibe-gray-700 hover:bg-vibe-gray-800 text-black h-[31px] px-12">
-            <span className="font-bold">Meet with </span>
-            <span className="font-normal italic">
+        <div className="flex-shrink-0 text-center">
+          <Button className="bg-white/80 hover:bg-white text-gray-800 h-auto py-2 px-8 rounded-xl shadow-md border border-white/50">
+            <span className="font-bold text-sm">Meet with </span>
+            <span className="font-normal italic text-sm">
               {currentPet?.name || 'PET NAME HERE'}
             </span>
-            <span className="font-bold"> right now!</span>
+            <span className="font-bold text-sm"> right now!</span>
           </Button>
         </div>
-      </div>
 
-      {/* Footer Navigation */}
-      <Footer />
+        {/* Footer Navigation */}
+        <div className="flex-shrink-0">
+          <Footer />
+        </div>
 
-      {/* Help Link */}
-      <div className="text-center py-4">
-        <p className="text-[8px] italic font-bold">
-          Having question? &gt;Go to <span className="underline">guide</span>
-        </p>
+        {/* Help Link */}
+        <div className="flex-shrink-0 text-center py-2">
+          <p className="text-[8px] italic font-bold text-gray-600">
+            Having question? &gt;Go to <span className="underline">guide</span>
+          </p>
+        </div>
       </div>
     </div>
   )

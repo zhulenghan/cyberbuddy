@@ -1,20 +1,15 @@
 import { APIGatewayProxyHandler, APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda'
-import {
-  CognitoIdentityProviderClient,
-  InitiateAuthCommand,
-  GetUserCommand,
-  AdminGetUserCommand,
-} from '@aws-sdk/client-cognito-identity-provider'
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
-import { DynamoDBDocumentClient, PutCommand, GetCommand } from '@aws-sdk/lib-dynamodb'
+import { DynamoDBDocumentClient, PutCommand, GetCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb'
 import { v4 as uuidv4 } from 'uuid'
+import jwt from 'jsonwebtoken'
 
-const cognitoClient = new CognitoIdentityProviderClient({})
 const dynamoClient = DynamoDBDocumentClient.from(new DynamoDBClient({}))
 
 const TABLE_NAME = process.env.TABLE_NAME!
-const USER_POOL_ID = process.env.USER_POOL_ID!
-const USER_POOL_CLIENT_ID = process.env.USER_POOL_CLIENT_ID!
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production'
+const JWT_ACCESS_EXPIRY = '7d' // 7 days for access token
+const JWT_REFRESH_EXPIRY = '30d' // 30 days for refresh token
 
 interface GoogleTokenPayload {
   googleToken: string
@@ -22,6 +17,14 @@ interface GoogleTokenPayload {
 
 interface RefreshTokenPayload {
   refreshToken: string
+}
+
+interface JWTPayload {
+  userId: string
+  email: string
+  type: 'access' | 'refresh'
+  iat?: number
+  exp?: number
 }
 
 export const handler: APIGatewayProxyHandler = async (
@@ -63,7 +66,7 @@ export const handler: APIGatewayProxyHandler = async (
 /**
  * Handle Google OAuth login
  * Chrome extension uses chrome.identity.getAuthToken() to get Google token
- * Then exchanges it for Cognito credentials
+ * Then exchanges it for JWT tokens
  */
 async function handleGoogleAuth(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
   const body: GoogleTokenPayload = JSON.parse(event.body || '{}')
@@ -77,28 +80,21 @@ async function handleGoogleAuth(event: APIGatewayProxyEvent): Promise<APIGateway
     }
   }
 
-  // In production, you would:
-  // 1. Verify Google token with Google's API
-  // 2. Extract user info (email, name, etc.)
-  // 3. Create or get existing Cognito user
-  // 4. Return Cognito tokens
-
-  // For now, we'll implement a simplified version
-  // that assumes Google token is valid and contains user email
-
   try {
-    // Verify Google token (simplified - in production use Google API)
+    // Verify Google token and get user info
     const userInfo = await verifyGoogleToken(googleToken)
 
-    // Get or create user in Cognito
+    // Get or create user in DynamoDB
     const userId = await getOrCreateUser(userInfo)
 
-    // Create session in DynamoDB
-    const sessionId = uuidv4()
-    await createSession(userId, sessionId)
+    // Generate JWT tokens
+    const accessToken = generateAccessToken(userId, userInfo.email)
+    const refreshToken = generateRefreshToken(userId, userInfo.email)
 
-    // In a real implementation, you'd return actual Cognito tokens
-    // For now, return a mock token structure
+    // Calculate expiry time
+    const accessTokenDecoded = jwt.decode(accessToken) as JWTPayload
+    const expiresIn = accessTokenDecoded.exp! - Math.floor(Date.now() / 1000)
+
     return {
       statusCode: 200,
       headers: corsHeaders(),
@@ -110,10 +106,10 @@ async function handleGoogleAuth(event: APIGatewayProxyEvent): Promise<APIGateway
           picture: userInfo.picture,
         },
         tokens: {
-          accessToken: `mock-access-token-${sessionId}`,
-          refreshToken: `mock-refresh-token-${sessionId}`,
-          idToken: `mock-id-token-${sessionId}`,
-          expiresIn: 3600,
+          accessToken,
+          refreshToken,
+          expiresIn,
+          tokenType: 'Bearer',
         },
       }),
     }
@@ -145,20 +141,40 @@ async function handleRefreshToken(event: APIGatewayProxyEvent): Promise<APIGatew
     }
   }
 
-  // In production: validate refresh token with Cognito and issue new access token
-  // For now: mock response
-  const sessionId = refreshToken.replace('mock-refresh-token-', '')
+  try {
+    // Verify refresh token
+    const payload = jwt.verify(refreshToken, JWT_SECRET) as JWTPayload
 
-  return {
-    statusCode: 200,
-    headers: corsHeaders(),
-    body: JSON.stringify({
-      tokens: {
-        accessToken: `mock-access-token-refreshed-${sessionId}`,
-        idToken: `mock-id-token-refreshed-${sessionId}`,
-        expiresIn: 3600,
-      },
-    }),
+    if (payload.type !== 'refresh') {
+      throw new Error('Invalid token type')
+    }
+
+    // Generate new access token
+    const accessToken = generateAccessToken(payload.userId, payload.email)
+
+    // Calculate expiry time
+    const accessTokenDecoded = jwt.decode(accessToken) as JWTPayload
+    const expiresIn = accessTokenDecoded.exp! - Math.floor(Date.now() / 1000)
+
+    return {
+      statusCode: 200,
+      headers: corsHeaders(),
+      body: JSON.stringify({
+        accessToken,
+        expiresIn,
+        tokenType: 'Bearer',
+      }),
+    }
+  } catch (error) {
+    console.error('Token refresh error:', error)
+    return {
+      statusCode: 401,
+      headers: corsHeaders(),
+      body: JSON.stringify({
+        error: 'Invalid refresh token',
+        message: error instanceof Error ? error.message : 'Unknown error',
+      }),
+    }
   }
 }
 
@@ -166,13 +182,43 @@ async function handleRefreshToken(event: APIGatewayProxyEvent): Promise<APIGatew
  * Handle logout
  */
 async function handleLogout(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
-  // In production: invalidate Cognito session
-  // For now: return success
+  // With JWT, logout is handled client-side by deleting tokens
+  // No server-side session to invalidate
   return {
     statusCode: 200,
     headers: corsHeaders(),
     body: JSON.stringify({ message: 'Logged out successfully' }),
   }
+}
+
+/**
+ * Generate JWT access token
+ */
+function generateAccessToken(userId: string, email: string): string {
+  return jwt.sign(
+    {
+      userId,
+      email,
+      type: 'access',
+    } as JWTPayload,
+    JWT_SECRET,
+    { expiresIn: JWT_ACCESS_EXPIRY }
+  )
+}
+
+/**
+ * Generate JWT refresh token
+ */
+function generateRefreshToken(userId: string, email: string): string {
+  return jwt.sign(
+    {
+      userId,
+      email,
+      type: 'refresh',
+    } as JWTPayload,
+    JWT_SECRET,
+    { expiresIn: JWT_REFRESH_EXPIRY }
+  )
 }
 
 /**
@@ -236,6 +282,25 @@ async function getOrCreateUser(userInfo: {
   )
 
   if (result.Item) {
+    // Update last login time
+    await dynamoClient.send(
+      new UpdateCommand({
+        TableName: TABLE_NAME,
+        Key: {
+          PK: `USER#${email}`,
+          SK: 'PROFILE',
+        },
+        UpdateExpression: 'SET lastLoginAt = :now, #name = :name, picture = :picture',
+        ExpressionAttributeNames: {
+          '#name': 'name',
+        },
+        ExpressionAttributeValues: {
+          ':now': new Date().toISOString(),
+          ':name': name,
+          ':picture': picture,
+        },
+      })
+    )
     return result.Item.userId as string
   }
 
@@ -255,6 +320,7 @@ async function getOrCreateUser(userInfo: {
         picture,
         createdAt: now,
         updatedAt: now,
+        lastLoginAt: now,
         GSI1PK: `USER#${userId}`,
         GSI1SK: 'PROFILE',
       },
@@ -262,28 +328,6 @@ async function getOrCreateUser(userInfo: {
   )
 
   return userId
-}
-
-/**
- * Create session in DynamoDB
- */
-async function createSession(userId: string, sessionId: string): Promise<void> {
-  const now = new Date().toISOString()
-  const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() // 30 days
-
-  await dynamoClient.send(
-    new PutCommand({
-      TableName: TABLE_NAME,
-      Item: {
-        PK: `USER#${userId}`,
-        SK: `SESSION#${sessionId}`,
-        sessionId,
-        userId,
-        createdAt: now,
-        expiresAt,
-      },
-    })
-  )
 }
 
 /**

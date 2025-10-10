@@ -167,29 +167,53 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ isLoading: true })
 
     try {
-      const [accessToken, refreshToken, tokenExpiry, user] = await Promise.all([
+      console.log('Loading session from storage...')
+
+      // Add timeout to prevent infinite loading
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('Session load timeout')), 5000)
+      })
+
+      const storagePromise = Promise.all([
         chromeStorage.get<string>(CONFIG.STORAGE_KEYS.ACCESS_TOKEN),
         chromeStorage.get<string>(CONFIG.STORAGE_KEYS.REFRESH_TOKEN),
         chromeStorage.get<number>(CONFIG.STORAGE_KEYS.TOKEN_EXPIRY),
         chromeStorage.get<User>(CONFIG.STORAGE_KEYS.USER),
       ])
 
+      const [accessToken, refreshToken, tokenExpiry, user] = await Promise.race([
+        storagePromise,
+        timeoutPromise,
+      ])
+
+      console.log('Session data loaded:', {
+        hasToken: !!accessToken,
+        hasRefreshToken: !!refreshToken,
+        hasUser: !!user,
+        tokenExpiry,
+      })
+
       if (!accessToken || !refreshToken || !user) {
-        set({ isLoading: false })
+        console.log('No valid session found')
+        set({ isLoading: false, isAuthenticated: false })
         return
       }
 
       // Check if token expired
       if (tokenExpiry && Date.now() >= tokenExpiry) {
+        console.log('Token expired, attempting refresh...')
         // Try to refresh
         try {
           await get().refreshToken()
-        } catch {
-          set({ isLoading: false })
+          console.log('Token refreshed successfully')
+        } catch (error) {
+          console.error('Token refresh failed:', error)
+          set({ isLoading: false, isAuthenticated: false })
           return
         }
       } else {
         // Set existing token
+        console.log('Using existing valid token')
         apiClient.setAccessToken(accessToken)
 
         set({
@@ -206,7 +230,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       }
     } catch (error) {
       console.error('Failed to load session:', error)
-      set({ isLoading: false })
+      set({ isLoading: false, isAuthenticated: false })
     }
   },
 

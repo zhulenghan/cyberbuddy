@@ -61,62 +61,172 @@ export function Carousel({ items, autoPlay = true, interval = 3000, className }:
 
 interface PetShowcaseCarouselProps {
   className?: string
+  pets?: Array<{ imageUrl?: string; name?: string }>
 }
 
-export function PetShowcaseCarousel({ className }: PetShowcaseCarouselProps) {
-  const showcasePets = [
-    { id: 1, text: 'Floating Ghost', color: 'bg-gradient-to-br from-purple-200 to-purple-400' },
-    { id: 2, text: 'Tiny Dragon', color: 'bg-gradient-to-br from-red-200 to-orange-400' },
-    { id: 3, text: 'Pixel Bird', color: 'bg-gradient-to-br from-blue-200 to-cyan-400' },
-    { id: 4, text: 'Cyber Cat', color: 'bg-gradient-to-br from-pink-200 to-rose-400' },
-    { id: 5, text: 'Digital Spirit', color: 'bg-gradient-to-br from-green-200 to-emerald-400' },
+export function PetShowcaseCarousel({ className, pets = [] }: PetShowcaseCarouselProps) {
+  const [currentIndex, setCurrentIndex] = useState(0)
+
+  // Use provided pets or show placeholder
+  const displayPets = pets.length > 0 ? pets : [
+    { name: 'Your Pet', imageUrl: undefined },
+    { name: 'Your Pet', imageUrl: undefined },
+    { name: 'Your Pet', imageUrl: undefined },
   ]
 
-  const items = showcasePets.map((pet) => (
-    <div
-      key={pet.id}
-      className={cn(
-        'w-full h-full flex items-center justify-center rounded',
-        pet.color
-      )}
-    >
-      <p className="text-center text-sm font-bold px-4 text-gray-800">
-        {pet.text}
-        <br />
-        <span className="text-xs">Cyber Pet</span>
-      </p>
-    </div>
-  ))
+  useEffect(() => {
+    if (displayPets.length <= 1) return
+
+    const timer = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % displayPets.length)
+    }, 3000)
+
+    return () => clearInterval(timer)
+  }, [displayPets.length])
+
+  const getCardStyle = (index: number) => {
+    const diff = index - currentIndex
+    const total = displayPets.length
+
+    // Normalize diff to be between -total/2 and total/2
+    let normalizedDiff = diff
+    if (diff > total / 2) normalizedDiff = diff - total
+    if (diff < -total / 2) normalizedDiff = diff + total
+
+    // Calculate position and scale
+    const isCenter = normalizedDiff === 0
+    const absOffset = Math.abs(normalizedDiff)
+
+    // Use pixel-based positioning for better control
+    let translateX = normalizedDiff * 120 // Spread cards by 120px
+    let scale = isCenter ? 1 : 0.75 - (absOffset * 0.1)
+    let opacity = isCenter ? 1 : 0.5 - (absOffset * 0.15)
+    let zIndex = isCenter ? 20 : 10 - absOffset
+    let rotateY = normalizedDiff * 15 // 3D rotation
+
+    return {
+      transform: `translate(-50%, -50%) translateX(${translateX}px) scale(${Math.max(scale, 0.5)}) rotateY(${rotateY}deg)`,
+      opacity: Math.max(opacity, 0.2),
+      zIndex: Math.max(zIndex, 0),
+      transition: 'all 0.5s cubic-bezier(0.4, 0.0, 0.2, 1)',
+    }
+  }
+
+  const handlePrev = () => {
+    setCurrentIndex((prev) => (prev - 1 + displayPets.length) % displayPets.length)
+  }
+
+  const handleNext = () => {
+    setCurrentIndex((prev) => (prev + 1) % displayPets.length)
+  }
 
   return (
-    <div className={cn('relative w-full max-w-[420px] h-[326px]', className)}>
-      {/* Left side preview */}
-      <div className="absolute left-0 top-0 w-[96px] h-[326px] bg-vibe-gray-200 rounded shadow-lg flex items-center justify-center z-0">
-        <p className="text-center text-xs px-2">
-          Visuals of other
-          <br />
-          cyber pets
-        </p>
+    <div className={cn('relative w-full h-[220px]', className)}>
+      {/* 3D Carousel Container */}
+      <div className="relative w-full h-full perspective-1000">
+        <div className="relative w-full h-full preserve-3d">
+          {displayPets.map((pet, index) => (
+            <div
+              key={index}
+              className="absolute top-1/2 left-1/2 w-[160px] h-[180px]"
+              style={getCardStyle(index)}
+            >
+              <div className="w-full h-full bg-vibe-gray-200 rounded-xl shadow-lg flex flex-col items-center justify-center p-3 border-2 border-vibe-gray-400">
+                {pet.imageUrl ? (
+                  <>
+                    <div className="w-full h-[130px] flex items-center justify-center mb-2">
+                      <img
+                        src={pet.imageUrl}
+                        alt={pet.name || 'Pet'}
+                        className="max-w-full max-h-full object-contain pixel-art"
+                      />
+                    </div>
+                    <p className="text-xs font-bold text-center text-gray-800">
+                      {pet.name}
+                    </p>
+                  </>
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <div className="text-center">
+                      <div className="text-5xl mb-2">🤖</div>
+                      <p className="text-[10px] text-gray-600">Create Your Cyber Buddy</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
-      {/* Center carousel */}
-      <div className="absolute left-1/2 -translate-x-1/2 w-[253px] h-[326px] z-10">
-        <Carousel
-          items={items}
-          autoPlay={true}
-          interval={3000}
-          className="w-full h-full bg-vibe-gray-200 rounded shadow-lg"
-        />
-      </div>
+      {/* Navigation Buttons */}
+      {displayPets.length > 1 && (
+        <>
+          <button
+            onClick={handlePrev}
+            className="absolute left-1 top-1/2 -translate-y-1/2 z-30 w-8 h-8 rounded-full bg-white/80 hover:bg-white shadow-md flex items-center justify-center transition-all hover:scale-105"
+            aria-label="Previous pet"
+          >
+            <svg
+              className="w-4 h-4 text-gray-800"
+              fill="none"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <button
+            onClick={handleNext}
+            className="absolute right-1 top-1/2 -translate-y-1/2 z-30 w-8 h-8 rounded-full bg-white/80 hover:bg-white shadow-md flex items-center justify-center transition-all hover:scale-105"
+            aria-label="Next pet"
+          >
+            <svg
+              className="w-4 h-4 text-gray-800"
+              fill="none"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        </>
+      )}
 
-      {/* Right side preview */}
-      <div className="absolute right-0 top-0 w-[96px] h-[326px] bg-vibe-gray-200 rounded shadow-lg flex items-center justify-center z-0">
-        <p className="text-center text-xs px-2">
-          Visuals of other
-          <br />
-          cyber pets
-        </p>
-      </div>
+      {/* Indicators */}
+      {displayPets.length > 1 && (
+        <div className="absolute bottom-1 left-0 right-0 flex justify-center gap-1.5 z-30">
+          {displayPets.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => setCurrentIndex(index)}
+              className={cn(
+                'w-1.5 h-1.5 rounded-full transition-all duration-300',
+                index === currentIndex
+                  ? 'bg-vibe-dark w-3'
+                  : 'bg-vibe-gray-600 hover:bg-vibe-gray-800'
+              )}
+              aria-label={`Go to pet ${index + 1}`}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* 3D perspective styles */}
+      <style>{`
+        .perspective-1000 {
+          perspective: 1000px;
+        }
+        .preserve-3d {
+          transform-style: preserve-3d;
+        }
+      `}</style>
     </div>
   )
 }

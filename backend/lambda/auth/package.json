@@ -5,19 +5,23 @@
   "private": true,
   "type": "commonjs",
   "scripts": {
-    "build": "tsc && cp -r node_modules dist/",
+    "build": "npm run clean && npm run bundle",
+    "bundle": "esbuild src/index.ts --bundle --platform=node --target=node20 --format=cjs --outfile=dist/index.js --external:@aws-sdk/* --sourcemap",
     "clean": "rm -rf dist"
   },
   "dependencies": {
     "@aws-sdk/client-cognito-identity-provider": "^3.699.0",
     "@aws-sdk/client-dynamodb": "^3.699.0",
     "@aws-sdk/lib-dynamodb": "^3.699.0",
+    "@types/jsonwebtoken": "^9.0.10",
+    "jsonwebtoken": "^9.0.2",
     "uuid": "^11.0.4"
   },
   "devDependencies": {
-    "@types/node": "^22.10.1",
     "@types/aws-lambda": "^8.10.145",
+    "@types/node": "^22.10.1",
     "@types/uuid": "^10.0.0",
+    "esbuild": "^0.25.10",
     "typescript": "^5.9.2"
   }
 }

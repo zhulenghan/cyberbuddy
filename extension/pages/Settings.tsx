@@ -58,32 +58,48 @@ export default function Settings() {
   ]
 
   return (
-    <div className="min-h-[600px] w-[420px] bg-white flex flex-col overflow-y-auto pb-20">
-      {/* Header */}
-      <Header />
+    <div className="h-[600px] w-[400px] bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 flex flex-col overflow-hidden relative">
+      {/* Background decorations */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+        <div className="absolute -top-20 -right-20 w-64 h-64 bg-purple-300/30 rounded-full blur-3xl"></div>
+        <div className="absolute -bottom-20 -left-20 w-48 h-48 bg-indigo-300/30 rounded-full blur-3xl"></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 bg-pink-300/20 rounded-full blur-3xl"></div>
+      </div>
 
-      {/* Logo/Icon */}
-      <div className="flex justify-center mb-8">
-        <div className="w-[36px] h-[32px] bg-vibe-gray-700 flex items-center justify-center">
-          <span className="text-[8px] font-normal">Icon</span>
+      <div className="relative z-10 flex flex-col h-full px-6 py-4 gap-4">
+        {/* Header */}
+        <div className="flex-shrink-0">
+          <Header />
+        </div>
+
+        {/* Logo/Icon */}
+        <div className="flex-shrink-0 flex justify-center">
+          <div className="w-14 h-14 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-2xl flex items-center justify-center shadow-xl shadow-purple-500/40">
+            <span className="text-2xl">⚙️</span>
+          </div>
+        </div>
+
+        {/* Menu Items */}
+        <div className="flex-shrink-0 px-8 space-y-3">
+          {menuItems.map((item, index) => (
+            <Button
+              key={index}
+              onClick={item.onClick}
+              className="w-full h-[60px] bg-white/70 backdrop-blur-sm hover:bg-white text-gray-800 text-sm font-bold uppercase rounded-2xl shadow-lg border border-white/50 transition-all"
+            >
+              {item.label}
+            </Button>
+          ))}
+        </div>
+
+        {/* Spacer */}
+        <div className="flex-1 min-h-0"></div>
+
+        {/* Footer Navigation */}
+        <div className="flex-shrink-0">
+          <Footer />
         </div>
       </div>
-
-      {/* Menu Items */}
-      <div className="px-12 space-y-4 mb-8">
-        {menuItems.map((item, index) => (
-          <Button
-            key={index}
-            onClick={item.onClick}
-            className="w-full h-[68px] bg-vibe-gray-600 hover:bg-vibe-gray-700 text-black text-[15px] font-bold uppercase"
-          >
-            {item.label}
-          </Button>
-        ))}
-      </div>
-
-      {/* Footer Navigation */}
-      <Footer />
     </div>
   )
 }

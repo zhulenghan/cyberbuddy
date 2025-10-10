@@ -2,7 +2,6 @@
  * Authentication hook
  */
 
-import { useEffect } from 'react'
 import { useAuthStore } from '../lib/store'
 
 export function useAuth() {
@@ -13,13 +12,7 @@ export function useAuth() {
     error,
     login,
     logout,
-    loadSession,
   } = useAuthStore()
-
-  // Load session on mount
-  useEffect(() => {
-    loadSession()
-  }, [loadSession])
 
   return {
     user,

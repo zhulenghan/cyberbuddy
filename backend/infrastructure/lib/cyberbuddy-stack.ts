@@ -87,7 +87,7 @@ export class CyberBuddyStack extends cdk.Stack {
 
     const lambdaEnvironment = {
       TABLE_NAME: mainTable.tableName,
-      PET_IMAGES_BUCKET: petImagesBucket.bucketName,
+      BUCKET_NAME: petImagesBucket.bucketName,
       GOOGLE_AI_API_KEY: process.env.GOOGLE_AI_API_KEY || '',
       JWT_SECRET: process.env.JWT_SECRET || 'dev-secret-change-in-production',
     }
