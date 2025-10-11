@@ -15,7 +15,7 @@
     "build:shared": "npm run build --workspace=shared",
     "build:lambda": "npm run build --workspace=backend/lambda/auth && npm run build --workspace=backend/lambda/pets && npm run build --workspace=backend/lambda/activities",
     "build:backend": "npm run build:lambda && npm run build --workspace=backend/infrastructure",
-    "build:all": "npm run build:shared && npm run build:extension && npm run build:backend",
+    "build": "npm run build:shared && npm run build:extension && npm run build:backend",
     "cdk:bootstrap": "dotenv -e .env -- bash -c 'cd backend/infrastructure && cdk bootstrap'",
     "cdk:synth": "npm run cdk synth --workspace=backend/infrastructure",
     "cdk:diff": "npm run cdk diff --workspace=backend/infrastructure",
