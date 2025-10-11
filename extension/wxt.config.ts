@@ -1,5 +1,9 @@
 import { defineConfig } from 'wxt'
 import path from 'path'
+import { config } from 'dotenv'
+
+// Load .env file
+config()
 
 // See https://wxt.dev/api/config.html
 export default defineConfig({
@@ -22,7 +26,7 @@ export default defineConfig({
       '<all_urls>'
     ],
     oauth2: {
-      client_id: '1046077390083-jvf7n10g9r0ffrsl56daea7r0qulmq2k.apps.googleusercontent.com',
+      client_id: process.env.VITE_GOOGLE_CLIENT_ID!,
       scopes: [
         'https://www.googleapis.com/auth/userinfo.email',
         'https://www.googleapis.com/auth/userinfo.profile'
