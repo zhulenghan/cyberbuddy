@@ -24,6 +24,7 @@ export const API_ENDPOINTS = {
     GET: (id: string) => `/pets/${id}`,
     DELETE: (id: string) => `/pets/${id}`,
     ACTIVATE: (id: string) => `/pets/${id}/activate`,
+    GENERATE_BEHAVIOR: (id: string) => `/pets/${id}/behavior`,
   },
 
   // Activities

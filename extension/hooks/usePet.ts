@@ -3,7 +3,7 @@
  */
 
 import { useEffect } from 'react'
-import { usePetStore } from '../lib/store'
+import { usePetStore } from '../lib/store/petStore'
 
 export function usePet() {
   const {
@@ -14,6 +14,7 @@ export function usePet() {
     isGenerating,
     error,
     generatePet,
+    generateBehaviorContent,
     selectPet,
     loadPets,
     deletePet,
@@ -34,6 +35,7 @@ export function usePet() {
     isGenerating,
     error,
     generatePet,
+    generateBehaviorContent,
     selectPet,
     deletePet,
     updateState,

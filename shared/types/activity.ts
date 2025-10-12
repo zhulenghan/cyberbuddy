@@ -3,12 +3,10 @@
  */
 
 export enum ActivityLabel {
-  LEARNING = 'learning',
-  WORKING = 'working',
+  FOCUSED = 'focused',
   ENTERTAINMENT = 'entertainment',
   SOCIAL = 'social',
   SHOPPING = 'shopping',
-  OTHER = 'other',
 }
 
 export interface PageInfo {

@@ -134,12 +134,10 @@ export class TimeTracker {
 
     // Calculate stats by label
     const byLabel: ActivityStats['byLabel'] = {
-      learning: { duration: 0, count: 0, percentage: 0 },
-      working: { duration: 0, count: 0, percentage: 0 },
+      focused: { duration: 0, count: 0, percentage: 0 },
       entertainment: { duration: 0, count: 0, percentage: 0 },
       social: { duration: 0, count: 0, percentage: 0 },
       shopping: { duration: 0, count: 0, percentage: 0 },
-      other: { duration: 0, count: 0, percentage: 0 },
     }
 
     let totalDuration = 0

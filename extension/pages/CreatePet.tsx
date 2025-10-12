@@ -8,7 +8,7 @@ import { usePet } from '@/hooks/usePet'
 
 export default function CreatePet() {
   const navigate = useNavigate()
-  const { generatePet, isGenerating } = usePet()
+  const { generatePet, generateBehaviorContent, isGenerating } = usePet()
   const [petName, setPetName] = useState('')
   const [coreEntity, setCoreEntity] = useState('')
   const [uniqueTraits, setUniqueTraits] = useState('')
@@ -26,8 +26,8 @@ export default function CreatePet() {
       const prompt = `${coreEntity} with ${uniqueTraits}`
       const result = await generatePet(prompt)
 
-      // Backend returns images object with different states (idle, happy, etc.)
-      const imageUrl = result?.images?.idle
+      // Backend returns images object with different states (social, focused, etc.)
+      const imageUrl = result?.images?.social
       if (imageUrl) {
         setGeneratedImage(imageUrl)
         setGenerationHistory((prev) => [...prev, imageUrl])
@@ -46,11 +46,26 @@ export default function CreatePet() {
     }
 
     try {
+      // Get the generated pet from the store
+      const prompt = `${coreEntity} with ${uniqueTraits}`
+      const result = await generatePet(prompt)
+      
+      if (result) {
+        // Generate behavior content for the pet
+        try {
+          await generateBehaviorContent(result.id)
+          console.log('Behavior content generated successfully')
+        } catch (error) {
+          console.warn('Failed to generate behavior content:', error)
+          // Continue without behavior content
+        }
+      }
+
       // Save pet to storage - the hook will handle this
       await chrome.storage.local.set({
         currentPet: {
           name: petName,
-          prompt: `${coreEntity} with ${uniqueTraits}`,
+          prompt: prompt,
           imageUrl: generatedImage,
           createdAt: Date.now(),
         },

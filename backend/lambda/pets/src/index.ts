@@ -1,6 +1,6 @@
 import { APIGatewayProxyHandler, APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda'
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
-import { DynamoDBDocumentClient, PutCommand } from '@aws-sdk/lib-dynamodb'
+import { DynamoDBDocumentClient, PutCommand, GetCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb'
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 import { GetObjectCommand } from '@aws-sdk/client-s3'
@@ -39,6 +39,8 @@ export const handler: APIGatewayProxyHandler = async (
       return await handleGetPet(event)
     } else if (path === '/pets/{petId}' && method === 'DELETE') {
       return await handleDeletePet(event)
+    } else if (path === '/pets/{petId}/behavior' && method === 'POST') {
+      return await handleGenerateBehavior(event)
     }
 
     return {
@@ -89,12 +91,12 @@ async function handleGeneratePet(event: APIGatewayProxyEvent): Promise<APIGatewa
     const now = new Date().toISOString()
 
     // Generate images for different states
-    const states = ['idle', 'happy', 'focused', 'tired', 'excited']
+    const states = ['social', 'focused', 'entertainment', 'shopping']
     const images: Record<string, string> = {}
 
-    // For MVP, generate only idle state image
+    // For MVP, generate only social state image
     // TODO: Generate all states in parallel
-    const imagePrompt = buildImagePrompt(prompt, 'idle', style)
+    const imagePrompt = buildImagePrompt(prompt, 'social', style)
     const imageUrl = await generateImage(imagePrompt, style)
 
     // For now, use the same image for all states
@@ -178,11 +180,10 @@ async function handleDeletePet(event: APIGatewayProxyEvent): Promise<APIGatewayP
  */
 function buildImagePrompt(userPrompt: string, state: string, style: 'pixel' | '3d'): string {
   const stateDescriptions: Record<string, string> = {
-    idle: 'standing still, neutral expression',
-    happy: 'smiling, energetic pose',
-    focused: 'concentrating, determined look',
-    tired: 'yawning, relaxed pose',
-    excited: 'jumping, very happy expression',
+    social: 'in a social setting, interacting with others, friendly expression',
+    focused: 'concentrating hard, determined look, working or studying',
+    entertainment: 'having fun, enjoying leisure time, playful expression',
+    shopping: 'browsing or shopping, looking at items, excited about purchases',
   }
 
   const stylePrefix = style === 'pixel'
@@ -271,6 +272,161 @@ function getUserIdFromEvent(event: APIGatewayProxyEvent): string | null {
   }
 
   return null
+}
+
+/**
+ * Generate behavior content for a pet
+ */
+async function handleGenerateBehavior(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+  const petId = event.pathParameters?.petId
+  if (!petId) {
+    return {
+      statusCode: 400,
+      headers: corsHeaders(),
+      body: JSON.stringify({ error: 'Missing pet ID' }),
+    }
+  }
+
+  // Get user ID from JWT token
+  const userId = getUserIdFromEvent(event)
+  if (!userId) {
+    return {
+      statusCode: 401,
+      headers: corsHeaders(),
+      body: JSON.stringify({ error: 'Unauthorized' }),
+    }
+  }
+
+  try {
+    // Get pet from DynamoDB
+    const petResult = await dynamoClient.send(
+      new GetCommand({
+        TableName: TABLE_NAME,
+        Key: {
+          PK: `USER#${userId}`,
+          SK: `PET#${petId}`,
+        },
+      })
+    )
+
+    if (!petResult.Item) {
+      return {
+        statusCode: 404,
+        headers: corsHeaders(),
+        body: JSON.stringify({ error: 'Pet not found' }),
+      }
+    }
+
+    const pet = petResult.Item
+    const behaviorContent = await generateBehaviorContent(pet.prompt)
+
+    // Update pet with behavior content
+    await dynamoClient.send(
+      new UpdateCommand({
+        TableName: TABLE_NAME,
+        Key: {
+          PK: `USER#${userId}`,
+          SK: `PET#${petId}`,
+        },
+        UpdateExpression: 'SET behaviorContent = :behaviorContent, updatedAt = :updatedAt',
+        ExpressionAttributeValues: {
+          ':behaviorContent': behaviorContent,
+          ':updatedAt': new Date().toISOString(),
+        },
+      })
+    )
+
+    return {
+      statusCode: 200,
+      headers: corsHeaders(),
+      body: JSON.stringify({
+        petId,
+        behaviorContent,
+      }),
+    }
+  } catch (error) {
+    console.error('Failed to generate behavior content:', error)
+    return {
+      statusCode: 500,
+      headers: corsHeaders(),
+      body: JSON.stringify({
+        error: 'Failed to generate behavior content',
+        message: error instanceof Error ? error.message : 'Unknown error',
+      }),
+    }
+  }
+}
+
+/**
+ * Generate behavior content using AI
+ */
+async function generateBehaviorContent(petPrompt: string): Promise<{
+  social: string
+  focused: string
+  entertainment: string
+  shopping: string
+}> {
+  if (!GOOGLE_AI_API_KEY) {
+    console.warn('GOOGLE_AI_API_KEY not set, using placeholder behavior content')
+    return {
+      social: `${petPrompt}在社交场合中与朋友们聊天`,
+      focused: `${petPrompt}在专注地工作学习`,
+      entertainment: `${petPrompt}在享受娱乐时光`,
+      shopping: `${petPrompt}在购物中寻找心仪商品`,
+    }
+  }
+
+  try {
+    const prompt = `生成符合宠物形象和用户行为的behavior_content：
+分别生成符合桌宠形象的社交、专注、娱乐、购物的简短描述句子。
+
+用户的输入：${petPrompt}
+
+示例：桌宠是一只黑色的蜗牛（特征是长睫毛，牛仔帽）。
+结果：
+1、专注：一只黑色的蜗牛（特征是长睫毛、牛仔帽）在努力跑步
+2、娱乐：一只黑色的蜗牛（特征是长睫毛、牛仔帽）在欣赏自己的牛仔帽
+3、社交：一只黑色的蜗牛（特征是长睫毛、牛仔帽）在打电话
+4、购物：一只黑色的蜗牛（特征是长睫毛、牛仔帽）推着购物车
+
+请按照以下JSON格式返回结果：
+{
+  "social": "描述句子",
+  "focused": "描述句子", 
+  "entertainment": "描述句子",
+  "shopping": "描述句子"
+}`
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: prompt,
+    })
+
+    const content = response.candidates?.[0]?.content?.parts?.[0]?.text
+    if (!content) {
+      throw new Error('No content in AI response')
+    }
+
+    // Parse JSON response
+    const behaviorContent = JSON.parse(content)
+    
+    // Validate the response structure
+    if (!behaviorContent.social || !behaviorContent.focused || 
+        !behaviorContent.entertainment || !behaviorContent.shopping) {
+      throw new Error('Invalid behavior content structure')
+    }
+
+    return behaviorContent
+  } catch (error) {
+    console.error('AI behavior generation failed:', error)
+    // Fallback to template-based generation
+    return {
+      social: `${petPrompt}在社交场合中与朋友们聊天`,
+      focused: `${petPrompt}在专注地工作学习`,
+      entertainment: `${petPrompt}在享受娱乐时光`,
+      shopping: `${petPrompt}在购物中寻找心仪商品`,
+    }
+  }
 }
 
 /**

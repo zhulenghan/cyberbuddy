@@ -5,17 +5,11 @@
 import { ActivityLabel } from '../types'
 
 export const LABEL_METADATA = {
-  [ActivityLabel.LEARNING]: {
-    name: 'Learning',
+  [ActivityLabel.FOCUSED]: {
+    name: 'Focused',
     color: '#10b981',
-    icon: '📚',
-    description: 'Educational content, tutorials, documentation',
-  },
-  [ActivityLabel.WORKING]: {
-    name: 'Working',
-    color: '#3b82f6',
-    icon: '💼',
-    description: 'Work-related tasks, emails, meetings',
+    icon: '🎯',
+    description: 'Learning, working, studying, concentrating',
   },
   [ActivityLabel.ENTERTAINMENT]: {
     name: 'Entertainment',
@@ -35,17 +29,11 @@ export const LABEL_METADATA = {
     icon: '🛒',
     description: 'Online shopping, e-commerce',
   },
-  [ActivityLabel.OTHER]: {
-    name: 'Other',
-    color: '#6b7280',
-    icon: '📄',
-    description: 'Uncategorized activity',
-  },
 } as const
 
 // URL pattern matching for fast classification
 export const URL_PATTERNS: Record<ActivityLabel, RegExp[]> = {
-  [ActivityLabel.LEARNING]: [
+  [ActivityLabel.FOCUSED]: [
     /coursera\.com/i,
     /udemy\.com/i,
     /edx\.org/i,
@@ -57,8 +45,6 @@ export const URL_PATTERNS: Record<ActivityLabel, RegExp[]> = {
     /w3schools\.com/i,
     /medium\.com\/.*\/(tutorial|guide|learning)/i,
     /youtube\.com\/watch.*\b(tutorial|course|lesson)\b/i,
-  ],
-  [ActivityLabel.WORKING]: [
     /docs\.google\.com/i,
     /notion\.so/i,
     /slack\.com/i,
@@ -109,12 +95,11 @@ export const URL_PATTERNS: Record<ActivityLabel, RegExp[]> = {
     /etsy\.com/i,
     /shopify\.com/i,
   ],
-  [ActivityLabel.OTHER]: [],
 }
 
 // Keywords for content-based classification
 export const KEYWORDS: Record<ActivityLabel, string[]> = {
-  [ActivityLabel.LEARNING]: [
+  [ActivityLabel.FOCUSED]: [
     'tutorial',
     'documentation',
     'learn',
@@ -127,8 +112,6 @@ export const KEYWORDS: Record<ActivityLabel, string[]> = {
     'training',
     'workshop',
     'lecture',
-  ],
-  [ActivityLabel.WORKING]: [
     'meeting',
     'email',
     'project',
@@ -178,15 +161,12 @@ export const KEYWORDS: Record<ActivityLabel, string[]> = {
     'shop',
     'order',
   ],
-  [ActivityLabel.OTHER]: [],
 }
 
 // Map activity labels to pet states
 export const LABEL_TO_PET_STATE = {
-  [ActivityLabel.LEARNING]: 'focused',
-  [ActivityLabel.WORKING]: 'focused',
-  [ActivityLabel.ENTERTAINMENT]: 'happy',
-  [ActivityLabel.SOCIAL]: 'excited',
-  [ActivityLabel.SHOPPING]: 'excited',
-  [ActivityLabel.OTHER]: 'idle',
+  [ActivityLabel.FOCUSED]: 'focused',
+  [ActivityLabel.ENTERTAINMENT]: 'entertainment',
+  [ActivityLabel.SOCIAL]: 'social',
+  [ActivityLabel.SHOPPING]: 'shopping',
 } as const

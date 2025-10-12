@@ -28,7 +28,7 @@ export class URLPatternStrategy implements IClassificationStrategy {
     }
 
     return {
-      label: 'other' as ActivityLabel,
+      label: 'social' as ActivityLabel,
       confidence: 0.5,
     }
   }
@@ -57,7 +57,7 @@ export class KeywordStrategy implements IClassificationStrategy {
 
     // Find label with highest score
     let maxScore = 0
-    let topLabel: ActivityLabel = 'other'
+    let topLabel: ActivityLabel = 'social'
 
     for (const [label, score] of scores.entries()) {
       if (score > maxScore) {

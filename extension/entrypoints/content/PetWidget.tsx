@@ -9,7 +9,7 @@ import type { PetState } from '@shared/types'
 import { CONFIG } from '@/lib/config'
 
 export default function PetWidget() {
-  const [petState, setPetState] = useState<PetState>('idle')
+  const [petState, setPetState] = useState<PetState>('social')
   const [position, setPosition] = useState(CONFIG.PET_DEFAULT_POSITION)
   const [isDragging, setIsDragging] = useState(false)
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
@@ -106,7 +106,7 @@ export default function PetWidget() {
           alignItems: 'center',
           justifyContent: 'center',
           transition: isDragging ? 'none' : 'transform 0.3s ease',
-          animation: petState === 'happy' ? 'bounce 1s infinite' : 'none',
+          animation: petState === 'entertainment' ? 'bounce 1s infinite' : 'none',
         }}
       >
         <img

@@ -3,19 +3,17 @@
  */
 
 export enum PetState {
-  IDLE = 'idle',
-  HAPPY = 'happy',
+  SOCIAL = 'social',
   FOCUSED = 'focused',
-  TIRED = 'tired',
-  EXCITED = 'excited',
+  ENTERTAINMENT = 'entertainment',
+  SHOPPING = 'shopping',
 }
 
 export interface PetImages {
-  idle: string
-  happy: string
+  social: string
   focused: string
-  tired: string
-  excited: string
+  entertainment: string
+  shopping: string
 }
 
 export interface Pet {
@@ -23,6 +21,7 @@ export interface Pet {
   prompt: string
   images: PetImages
   style: 'pixel' | '3d'
+  behaviorContent?: PetBehaviorContent
   createdAt: string
   isActive: boolean
 }
@@ -48,4 +47,11 @@ export interface PetBehavior {
   state: PetState
   message?: string
   duration?: number
+}
+
+export interface PetBehaviorContent {
+  social: string
+  focused: string
+  entertainment: string
+  shopping: string
 }
