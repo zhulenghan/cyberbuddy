@@ -1,9 +1,5 @@
 import { useState } from 'react'
-import { ChevronLeft } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Header } from '@/components/layout/Header'
 import { usePet } from '@/hooks/usePet'
 
 export default function CreatePet() {
@@ -13,12 +9,13 @@ export default function CreatePet() {
   const [coreEntity, setCoreEntity] = useState('')
   const [uniqueTraits, setUniqueTraits] = useState('')
   const [generatedImage, setGeneratedImage] = useState<string | null>(null)
+  const [isImageConfirmed, setIsImageConfirmed] = useState(false)
   const [generationHistory, setGenerationHistory] = useState<string[]>([])
   const [currentHistoryIndex, setCurrentHistoryIndex] = useState(0)
 
   const handleGenerate = async () => {
     if (!coreEntity || !uniqueTraits) {
-      alert('Please fill in both core entity and unique traits')
+      alert('Please define your CORE ENTITY and TRAITS first!')
       return
     }
 
@@ -32,6 +29,7 @@ export default function CreatePet() {
         setGeneratedImage(imageUrl)
         setGenerationHistory((prev) => [...prev, imageUrl])
         setCurrentHistoryIndex(generationHistory.length)
+        setIsImageConfirmed(false) // Reset confirmation when new image is generated
       }
     } catch (error) {
       console.error('Failed to generate pet:', error)
@@ -39,9 +37,14 @@ export default function CreatePet() {
     }
   }
 
-  const handleConfirm = async () => {
-    if (!petName || !generatedImage) {
-      alert('Please generate a pet and give it a name')
+  const handleConfirmImage = () => {
+    if (!generatedImage) return
+    setIsImageConfirmed(true)
+  }
+
+  const handleProceed = async () => {
+    if (!isImageConfirmed || !petName) {
+      alert('You must CONFIRM the static image and name your pet before proceeding!')
       return
     }
 
@@ -78,45 +81,40 @@ export default function CreatePet() {
     }
   }
 
+  const handleInputChange = () => {
+    // Reset confirmation when inputs change
+    if (isImageConfirmed) {
+      setIsImageConfirmed(false)
+    }
+  }
+
   const handleRandomEntity = () => {
     const entities = [
-      'a floating ghost',
-      'a tiny dragon',
-      'a mechanical bird',
-      'a glowing crystal',
-      'a fluffy cloud',
-      'a wise owl',
-      'a playful fox',
-      'a digital spirit',
+      'A sentient glitch sprite with butterfly wings',
+      'A biomechanical teddy bear with a glowing core',
+      'A vaporwave-inspired marble fox with holographic eyes',
+      'A cute, floating cloud made of sparkling data packets',
+      'A giant but friendly pixelated serpent',
     ]
     setCoreEntity(entities[Math.floor(Math.random() * entities.length)])
+    handleInputChange()
   }
 
   const handleRandomTraits = () => {
     const traits = [
-      'big eyes and wears red dress',
-      'glowing wings and sparkles',
-      'pixel art style with bright colors',
-      'soft pastel colors and cute expression',
-      'neon lights and cyberpunk aesthetic',
-      'translucent body with stars inside',
-      'tiny hat and round shape',
+      'covered in fuzzy rainbow fur and wearing a crown',
+      'has three rotating eyes and emits static noise',
+      'made of liquid mercury and constantly dissolving',
+      'wearing futuristic combat armor and holding a tiny sword',
+      'made of pure neon light, translucent and geometric',
     ]
     setUniqueTraits(traits[Math.floor(Math.random() * traits.length)])
+    handleInputChange()
   }
 
   const handleRandomName = () => {
-    const names = [
-      'GbabyGhost',
-      'PixelPal',
-      'CyberBuddy',
-      'SparkleWing',
-      'NeonFriend',
-      'CloudyDream',
-      'TinyHelper',
-      'GlowByte',
-    ]
-    setPetName(names[Math.floor(Math.random() * names.length)])
+    const names = ['Pixie', 'Glitch', 'Byte', 'Roku', 'Neon', 'Zippy', 'Cypher', 'Ghosty', 'Vibe', 'Buddy']
+    setPetName(names[Math.floor(Math.random() * names.length)] + Math.floor(Math.random() * 100))
   }
 
   const navigateHistory = (direction: 'prev' | 'next') => {
@@ -134,176 +132,254 @@ export default function CreatePet() {
     }
   }
 
+  // Get image preview state for styling
+  const getPreviewState = () => {
+    if (isGenerating) return 'loading'
+    if (isImageConfirmed && generatedImage) return 'confirmed'
+    if (generatedImage) return 'generated'
+    return 'empty'
+  }
+
+  const previewState = getPreviewState()
+
   return (
-    <div className="h-[600px] w-[400px] bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 flex flex-col overflow-hidden relative">
-      {/* Background decorations */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-        <div className="absolute -top-20 -right-20 w-64 h-64 bg-purple-300/30 rounded-full blur-3xl"></div>
-        <div className="absolute -bottom-20 -left-20 w-48 h-48 bg-indigo-300/30 rounded-full blur-3xl"></div>
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 bg-pink-300/20 rounded-full blur-3xl"></div>
-      </div>
+    <div className="h-[800px] w-[600px] bg-gray-800 flex items-center justify-center p-3 overflow-hidden">
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+        
+        .font-pixel {
+          font-family: 'Press Start 2P', cursive;
+        }
+        
+        .pixel-border {
+          border: 4px solid #1a1a1a;
+          box-shadow: 8px 8px 0 #000000;
+          background-color: #f0f0f0;
+        }
+        
+        .pixel-button {
+          border: 3px solid #1a1a1a;
+          box-shadow: 4px 4px 0 #000000;
+          transition: all 0.1s;
+        }
+        
+        .pixel-button:active:not(:disabled) {
+          box-shadow: 1px 1px 0 #000000;
+          transform: translate(3px, 3px);
+        }
+        
+        .pixel-button:disabled {
+          cursor: not-allowed;
+          filter: grayscale(100%);
+          opacity: 0.7;
+        }
+        
+        .pixel-input {
+          border: 2px solid #1a1a1a;
+          box-shadow: 2px 2px 0 #000000;
+          font-family: monospace;
+          padding: 6px 8px;
+          background-color: #ffffff;
+          font-size: 12px;
+        }
+        
+        .neon-pink { color: #ff00ff; }
+        .neon-cyan { color: #00ffff; }
+        .bg-neon-cyan { background-color: #00ffff; }
+        .dark-bg { background-color: #1a1a1a; }
+      `}</style>
 
-      <div className="relative z-10 flex flex-col h-full px-5 py-4 gap-2.5 overflow-y-auto">
-        {/* Header */}
-        <div className="flex-shrink-0">
-          <Header />
-        </div>
-
-        {/* Title */}
-        <div className="flex-shrink-0 text-center">
-          <h1 className="text-[22px] font-bold text-gray-800">PHASE 1. CREATE YOUR BUDDY</h1>
-        </div>
-
-        {/* Generate Button */}
-        <div className="flex-shrink-0">
-          <Button
-            onClick={handleGenerate}
-            disabled={isGenerating || !coreEntity || !uniqueTraits}
-            className="w-full h-[36px] bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 text-white text-sm font-bold disabled:opacity-50 rounded-xl shadow-lg"
+      <div className="pixel-border w-full p-3 overflow-y-auto max-h-full">
+        {/* Window Header */}
+        <div className="dark-bg pixel-border border-2 px-4 py-2 mb-4 flex justify-between items-center relative">
+          <button
+            onClick={() => navigate('/home')}
+            className="w-5 h-5 bg-neon-cyan pixel-border border-2 cursor-pointer flex items-center justify-center text-sm text-black font-bold pixel-button hover:bg-cyan-300 z-10 flex-shrink-0"
           >
-            {isGenerating
-              ? 'Generating...'
-              : 'Click here to generate your cyber buddy!'}
-          </Button>
-        </div>
+            <span className="transform scale-x-150">←</span>
+          </button>
 
-        {/* Preview and History */}
-        <div className="flex-shrink-0">
-          <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-3 flex gap-3 shadow-lg border border-white/50">
-            {/* Pet Preview */}
-            <div className="flex-1 bg-white/80 aspect-square rounded-xl flex items-center justify-center shadow-md">
-              {generatedImage ? (
-                <img
-                  src={generatedImage}
-                  alt="Generated pet"
-                  className="w-full h-full object-cover rounded-xl pixel-art"
-                />
-              ) : (
-                <p className="text-lg font-bold text-center text-gray-600">Pet Preview</p>
-              )}
-            </div>
+          <h1 className="font-pixel text-sm absolute left-1/2 transform -translate-x-1/2 neon-cyan whitespace-nowrap">
+            V I B E B U D D Y . E X E
+          </h1>
 
-            {/* History */}
-            <div className="flex-1 flex flex-col">
-              <div className="bg-white/80 rounded-xl p-2 flex-1 relative shadow-md">
-                <div className="bg-gradient-to-r from-indigo-500 to-purple-500 h-[13px] rounded-t flex items-center justify-center">
-                  <span className="text-[9px] font-semibold text-white">
-                    {currentHistoryIndex + 1} / {generationHistory.length || 1}
-                  </span>
-                </div>
-                <div className="flex items-center justify-center h-full">
-                  <p className="text-[12px] font-bold text-center text-gray-700">
-                    GENERATION HISTORY
-                  </p>
-                </div>
-                {generationHistory.length > 1 && (
-                  <>
-                    <button
-                      className="absolute left-0 top-1/2 -translate-y-1/2 text-gray-600"
-                      onClick={() => navigateHistory('prev')}
-                      disabled={currentHistoryIndex === 0}
-                    >
-                      <ChevronLeft className="w-5 h-5" />
-                    </button>
-                    <button
-                      className="absolute right-0 top-1/2 -translate-y-1/2 rotate-180 text-gray-600"
-                      onClick={() => navigateHistory('next')}
-                      disabled={currentHistoryIndex === generationHistory.length - 1}
-                    >
-                      <ChevronLeft className="w-5 h-5" />
-                    </button>
-                  </>
-                )}
-              </div>
-              <Button
-                onClick={handleConfirm}
-                disabled={!generatedImage || !petName}
-                className="mt-2 bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white text-xs font-bold disabled:opacity-50 rounded-lg shadow-md"
-              >
-                CONFIRM
-              </Button>
-            </div>
+          <div className="flex space-x-2 z-10 flex-shrink-0">
+            <div className="w-4 h-4 bg-neon-cyan pixel-border border-2"></div>
+            <div className="w-4 h-4 bg-red-600 pixel-border border-2"></div>
           </div>
         </div>
 
-        {/* Form Section */}
-        <div className="flex-shrink-0">
-          <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-3.5 space-y-3 shadow-lg border border-white/50">
+        {/* Main Content */}
+        <div className="space-y-3">
+          <h1 className="font-pixel text-lg mb-4 neon-pink text-center">
+            PHASE 1. CREATE YOUR BUDDY
+          </h1>
+
+          {/* Form Section */}
+          <section className="p-3 pixel-border bg-white space-y-3">
             {/* Core Entity */}
             <div>
-              <label className="text-[10px] font-bold mb-1.5 block text-gray-700">
-                Core Entity:
-              </label>
+              <label className="font-pixel text-[10px] mb-1 block">Core Entity:</label>
               <div className="flex gap-2">
-                <Input
+                <input
+                  type="text"
                   value={coreEntity}
-                  onChange={(e) => setCoreEntity(e.target.value)}
-                  placeholder="e.g a floating ghost"
-                  className="flex-1 h-[30px] bg-white/80 border border-white/50 text-[10px] rounded-lg shadow-sm"
+                  onChange={(e) => {
+                    setCoreEntity(e.target.value)
+                    handleInputChange()
+                  }}
+                  placeholder="e.g. a floating ghost"
+                  className="pixel-input w-full text-sm"
                 />
-                <Button
+                <button
                   onClick={handleRandomEntity}
-                  className="bg-white/80 hover:bg-white h-[30px] px-3 text-[8px] font-bold rounded-lg shadow-sm text-gray-700 border border-white/50"
+                  className="pixel-button bg-gray-300 text-black hover:bg-gray-200 w-20 text-[10px] font-mono"
                 >
                   Random
-                </Button>
+                </button>
               </div>
             </div>
 
             {/* Unique Traits */}
             <div>
-              <label className="text-[10px] font-bold mb-1.5 block text-gray-700">
-                Unique traits:
-              </label>
+              <label className="font-pixel text-[10px] mb-1 block">Unique traits:</label>
               <div className="flex gap-2">
-                <Input
+                <input
+                  type="text"
                   value={uniqueTraits}
-                  onChange={(e) => setUniqueTraits(e.target.value)}
+                  onChange={(e) => {
+                    setUniqueTraits(e.target.value)
+                    handleInputChange()
+                  }}
                   placeholder="e.g big eyes and wears red dress"
-                  className="flex-1 h-[30px] bg-white/80 border border-white/50 text-[10px] rounded-lg shadow-sm"
+                  className="pixel-input w-full text-sm"
                 />
-                <Button
+                <button
                   onClick={handleRandomTraits}
-                  className="bg-white/80 hover:bg-white h-[30px] px-3 text-[8px] font-bold rounded-lg shadow-sm text-gray-700 border border-white/50"
+                  className="pixel-button bg-gray-300 text-black hover:bg-gray-200 w-20 text-[10px] font-mono"
                 >
                   Random
-                </Button>
+                </button>
               </div>
             </div>
-          </div>
-        </div>
+          </section>
 
-        {/* Pet Name Section */}
-        <div className="flex-shrink-0">
-          <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-3.5 shadow-lg border border-white/50">
-            <label className="text-[10px] font-bold mb-1.5 block text-gray-700">
-              What would you like your pet to be called?
-            </label>
-            <div className="flex gap-2">
-              <Input
-                value={petName}
-                onChange={(e) => setPetName(e.target.value)}
-                placeholder="e.g GbabyGhost"
-                className="flex-1 h-[30px] bg-white/80 border border-white/50 text-[10px] rounded-lg shadow-sm"
-              />
-              <Button
-                onClick={handleRandomName}
-                className="bg-white/80 hover:bg-white h-[30px] px-3 text-[8px] font-bold rounded-lg shadow-sm text-gray-700 border border-white/50"
+          {/* Generate Button */}
+          <button
+            onClick={handleGenerate}
+            disabled={isGenerating || !coreEntity || !uniqueTraits}
+            className="pixel-button w-full bg-blue-500 font-pixel text-xs text-white hover:bg-blue-400 py-2"
+          >
+            {isGenerating ? 'GENERATING...' : 'Click here to generate your cyper buddy!'}
+          </button>
+
+          {/* Preview Grid */}
+          <div className="grid grid-cols-2 gap-3 h-64">
+            {/* LEFT: Pet Image Preview */}
+            <div
+              className={`aspect-square border-4 border-black flex items-center justify-center text-[10px] font-pixel leading-relaxed text-center ${
+                previewState === 'loading'
+                  ? 'dark-bg text-yellow-400'
+                  : previewState === 'confirmed'
+                  ? 'bg-green-500 text-black'
+                  : previewState === 'generated'
+                  ? 'bg-blue-300 text-black'
+                  : 'bg-gray-700 neon-pink'
+              }`}
+            >
+              {isGenerating ? (
+                <p>LOADING...<br />PLEASE WAIT</p>
+              ) : generatedImage ? (
+                isImageConfirmed ? (
+                  <img src={generatedImage} alt="Pet" className="w-full h-full object-cover" />
+                ) : (
+                  <p className="text-xs">IMAGE<br />GENERATED!</p>
+                )
+              ) : (
+                <p>Pet Preview</p>
+              )}
+            </div>
+
+            {/* RIGHT: Generation History / Status */}
+            <div className="border-2 border-black bg-white p-2 flex flex-col justify-between">
+              <div className="flex items-center justify-between text-black font-pixel text-[10px] border-b border-black pb-2">
+                <button
+                  className="text-lg px-1 hover:bg-gray-200"
+                  onClick={() => navigateHistory('prev')}
+                  disabled={currentHistoryIndex === 0 || generationHistory.length <= 1}
+                >
+                  ‹
+                </button>
+                <p className="neon-cyan text-[9px]">
+                  {generatedImage ? `RESULT ${currentHistoryIndex + 1} / ${generationHistory.length}` : 'GENERATION HISTORY'}
+                </p>
+                <button
+                  className="text-lg px-1 hover:bg-gray-200"
+                  onClick={() => navigateHistory('next')}
+                  disabled={currentHistoryIndex >= generationHistory.length - 1}
+                >
+                  ›
+                </button>
+              </div>
+
+              <div className="flex-grow flex items-center justify-center">
+                <p className="text-[10px] font-mono text-gray-700 text-center">
+                  {generatedImage && !isImageConfirmed
+                    ? 'Preview generated. Click CONFIRM to lock.'
+                    : isImageConfirmed
+                    ? 'CONFIRMED!'
+                    : 'Generated image will appear here.'}
+                </p>
+              </div>
+
+              <button
+                onClick={handleConfirmImage}
+                disabled={!generatedImage || isImageConfirmed}
+                className={`pixel-button w-full font-pixel text-[10px] mt-2 py-2 ${
+                  isImageConfirmed
+                    ? 'bg-gray-500 text-white'
+                    : generatedImage
+                    ? 'bg-green-500 hover:bg-green-400 text-white'
+                    : 'bg-gray-300 text-black'
+                }`}
               >
-                Random
-              </Button>
+                {isImageConfirmed ? 'CONFIRMED!' : 'CONFIRM'}
+              </button>
             </div>
           </div>
-        </div>
 
-        {/* Next Button */}
-        <div className="flex-shrink-0 pb-2">
-          <Button
-            onClick={() => navigate('/focus-setup')}
-            className="w-full max-w-[220px] mx-auto block h-[32px] bg-white/80 hover:bg-white text-gray-800 text-xs font-bold shadow-md rounded-xl border border-white/50"
+          {/* Pet Naming Input */}
+          <section className="p-3 pixel-border bg-white">
+            <label className="font-pixel text-[10px] mb-1 block">What would you like your pet to be called?</label>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={petName}
+                onChange={(e) => setPetName(e.target.value)}
+                placeholder="e.g. GbabyGhost"
+                className="pixel-input w-full text-sm"
+              />
+              <button
+                onClick={handleRandomName}
+                className="pixel-button bg-gray-300 text-black hover:bg-gray-200 w-20 text-[10px] font-mono"
+              >
+                Random
+              </button>
+            </div>
+          </section>
+
+          {/* Proceed Button */}
+          <button
+            onClick={handleProceed}
+            disabled={!isImageConfirmed || !petName}
+            className={`pixel-button w-full font-pixel text-xs py-2.5 ${
+              isImageConfirmed && petName
+                ? 'bg-green-500 hover:bg-green-400 text-white'
+                : 'bg-gray-400 text-black'
+            }`}
           >
-            Ready? Proceed to phase 2！
-          </Button>
+            Ready? Proceed to phase 2 !
+          </button>
         </div>
       </div>
     </div>

@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vibe Buddy Instructions</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Press Start 2P for Pixel Aesthetic -->
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        /* Define custom pixel styles */
+        .font-pixel {
+            font-family: 'Press Start 2P', cursive;
+        }
+
+        /* General Pixel Container Styling - Adjusted for cleaner look */
+        .pixel-border {
+            border: 4px solid #1a1a1a;
+            box-shadow: 8px 8px 0 #000000; /* Deep shadow for 3D look */
+            background-color: #f0f0f0;
+        }
+        
+        /* Pixel Button Styling */
+        .pixel-button {
+            border: 3px solid #1a1a1a;
+            box-shadow: 4px 4px 0 #000000;
+            transition: all 0.1s;
+        }
+        .pixel-button:active:not(:disabled) { /* Only apply active state if not disabled */
+            box-shadow: 1px 1px 0 #000000;
+            transform: translate(3px, 3px);
+        }
+        .pixel-button:disabled {
+            cursor: not-allowed;
+            filter: grayscale(100%);
+            opacity: 0.7;
+        }
+
+        /* Aesthetic colors */
+        .neon-pink { background-color: #ff00ff; }
+        .neon-cyan { background-color: #00ffff; }
+        .dark-bg { background-color: #1a1a1a; }
+        .text-neon-pink { color: #ff00ff; }
+        .text-neon-cyan { color: #00ffff; }
+        
+        /* Hide element without taking up space */
+        .hidden { display: none !important; }
+
+        /* Activity Button Group */
+        .activity-btn {
+            font-size: 10px;
+            padding: 8px 12px;
+            background-color: #d0d0d0;
+            margin: 4px;
+            border-radius: 0;
+        }
+        .activity-btn.selected {
+            background-color: #555555;
+            color: #fff;
+            box-shadow: 2px 2px 0 #000;
+        }
+        /* Custom separator to look pixelated */
+        .phase-separator {
+            height: 4px;
+            background-color: #1a1a1a;
+            margin: 24px 0;
+            box-shadow: 0 4px 0 #000;
+        }
+    </style>
+</head>
+<body class="bg-gray-800 flex items-center justify-center min-h-screen p-4">
+
+    <div class="pixel-border w-full max-w-2xl p-4">
+        <!-- Window Header (Consistent Style) -->
+        <div class="window-header dark-bg pixel-border border-2 px-4 py-2 mb-4 flex justify-between items-center relative">
+            
+            <!-- 窗口左侧：返回键 -->
+            <button id="window-back-btn" class="w-5 h-5 neon-cyan pixel-border border-2 cursor-pointer flex items-center justify-center text-sm text-black font-bold select-none pixel-button hover:bg-cyan-300 z-10 flex-shrink-0">
+                <span class="transform scale-x-150">←</span>
+            </button>
+            
+            <!-- 标题居中并青色 -->
+            <h1 class="font-pixel text-base sm:text-lg absolute left-1/2 transform -translate-x-1/2 select-none text-neon-cyan whitespace-nowrap">V I B E B U D D Y . E X E</h1> 
+            
+            <!-- 窗口右侧：控制按钮 -->
+            <div class="flex space-x-2 z-10 flex-shrink-0">
+                <div class="w-4 h-4 neon-cyan pixel-border border-2 cursor-pointer"></div>
+                <div class="w-4 h-4 bg-red-600 pixel-border border-2 cursor-pointer"></div>
+            </div>
+        </div>
+
+        <!-- Main Content - All phases in one scrollable block -->
+        <div id="app" class="space-y-6">
+            
+            <!-- ===================================== -->
+            <!-- PHASE 2: SET ACTIVITY -->
+            <!-- ===================================== -->
+            <div id="phase-two-panel" class="space-y-4">
+                <h1 class="font-pixel text-2xl mb-4 text-neon-pink text-center">PHASE 2. SET ACTIVITY</h1>
+                
+                <section class="p-4 pixel-border bg-white space-y-4">
+                    <p class="font-pixel text-xs mb-4 text-center">Which activity do you want your pet to accompany with?</p>
+                    
+                    <!-- Activity Tag Buttons -->
+                    <div id="activity-tags" class="flex flex-wrap justify-center p-2">
+                        <button class="pixel-button activity-btn" data-activity="Work">Work</button>
+                        <button class="pixel-button activity-btn" data-activity="Study">Study</button>
+                        <button class="pixel-button activity-btn" data-activity="Reading">Reading</button>
+                        <button class="pixel-button activity-btn" data-activity="Music">Music</button>
+                        <button class="pixel-button activity-btn" data-activity="Shopping">Shopping</button>
+                        <button class="pixel-button activity-btn" data-activity="Social">Social</button>
+                        <button class="pixel-button activity-btn" data-activity="Gaming">Gaming</button>
+                        <button class="pixel-button activity-btn" data-activity="Coding">Coding</button>
+                    </div>
+
+                    <button id="confirm-activity-btn" class="pixel-button w-full bg-green-500 font-pixel text-sm text-white hover:bg-green-400">
+                        CONFIRM
+                    </button>
+                </section>
+            </div>
+            
+            <!-- Visual Separator between Phase 2 and 3 -->
+            <div class="phase-separator"></div>
+
+
+            <!-- ===================================== -->
+            <!-- PHASE 3: INSTRUCTION / FINAL LAUNCH -->
+            <!-- ===================================== -->
+            <!-- 移除 'hidden' class 以便在同一页显示 -->
+            <div id="phase-three-panel" class="space-y-4">
+                <h1 class="font-pixel text-2xl mb-4 text-neon-pink text-center">PHASE 3. INSTRUCTION</h1>
+                
+                <section class="p-4 pixel-border bg-white grid grid-cols-2 gap-4">
+                    <!-- Left: Instructions -->
+                    <div class="col-span-1 text-black text-sm font-mono leading-relaxed">
+                        <h2 class="font-pixel text-xs mb-2 text-neon-pink">INSTRUCTIONS:</h2>
+                        <ol class="list-none space-y-2">
+                            <li>1、chat功能可以和宠物进行简单对话，如询问我已经专注了多久，或者告诉我来某浏览页在呢</li>
+                            <li>2、clock功能就是计时器</li>
+                            <li>3、鼠标悬停在宠物附近会激活宠物动态，点击宠物会弹出右边菜单栏</li>
+                            <li>4、尝试打开不同行为的浏览页看看你的宠物是什么反应吧！</li>
+                        </ol>
+                    </div>
+
+                    <!-- Right: Visual Placeholder -->
+                    <div class="col-span-1 bg-gray-700 border-4 border-black flex items-center justify-center text-center p-4">
+                        <p class="text-neon-pink font-pixel text-xs">Pet IMAGE HERE<br>&<br>REAL USE CASE IMAGE HERE</p>
+                    </div>
+                </section>
+
+                <!-- Final Launch CTA -->
+                <button id="launch-pet-btn" class="pixel-button w-full bg-red-600 font-pixel text-lg text-white hover:bg-red-500">
+                    Meet with <span id="pet-name-display">Cypher-Pup</span> right now!
+                </button>
+
+                <!-- Footer / Guidance -->
+                <div class="text-center text-xs font-mono text-gray-400 mt-2">
+                    Having question? >Go to <a href="#" class="text-neon-cyan hover:underline">guide</a>
+                </div>
+
+                <!-- Footer Navigation Icons (Updated with new complex path and viewBox) -->
+                <div class="flex justify-around p-4 dark-bg pixel-border border-2">
+                    
+                    <!-- 1. Timer Icon (Pixel Art) - New Complex Path -->
+                    <svg class="text-neon-cyan w-8 h-8 cursor-pointer" viewBox="0 0 345 344" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M107.333 6.53323C107.333 13.7332 106.667 13.9999 92.1334 13.9999H81.2L81.0667 19.3332C80.6667 26.6666 80 27.3332 73.2 27.3332H67.3334V33.1999C67.3334 39.5999 66.1334 40.6666 58.6667 40.6666C54.2667 40.6666 54.1334 40.9332 53.7334 46.2666L53.3334 51.9999L47.0667 52.3999L40.8 52.7999L40.4 59.0666L40 65.3332L34 65.9999L28 66.6666L27.3334 73.3332L26.6667 79.9999L20 80.3999L13.2 80.7999L13.7334 98.7999C14.4 119.467 13.8667 120.8 6.00002 119.733L0.666687 118.933V171.067V223.2L7.06669 223.6L13.3334 224L13.7334 243.733L14.1334 263.333H20C23.3334 263.333 26 264 26 264.8C26 265.467 26.4 265.867 27.0667 265.6C27.6 265.2 27.7334 267.6 27.4667 270.8C27.0667 276.667 27.0667 276.667 31.4667 276.667C38.1334 276.667 39.8667 278.4 40 284.933L40.1334 290.667L46.4 291.067C49.8667 291.333 52.6667 292.133 52.6667 292.933C52.6667 293.6 53.6 296.267 54.8 298.667C56.5334 302.4 57.7334 303.2 61.7334 303.6C66.5334 304 66.6667 304.133 67.0667 310C67.6 316.8 68.8 318 75.7334 318H80.6667V324.667V331.333H94.6667H108.667V337.333V343.333H173.467H238.267L237.467 338.933C236.267 332.133 237.467 331.467 251.333 331.067L264 330.667L264.4 324.4L264.8 318.133L270.4 317.733C275.733 317.333 276 317.067 276.4 312.667C277.067 302.8 277.2 302.667 284.667 303.067L291.333 303.6V297.467V291.333H298H304.667V284.667V278L309.333 277.867C311.867 277.733 314.8 277.6 315.733 277.467C316.667 277.467 317.6 274.667 318 270.667L318.667 264L324.933 263.6L331.2 263.2L331.6 243.6L332 224L338.4 223.6L344.667 223.2V171.2V119.067L339.733 119.467C331.067 119.867 331.333 120.4 331.333 106V92.6666L325.067 93.0666L318.667 93.3332L318.267 79.5999L317.867 65.9999H311.333H304.667V61.4666C304.667 53.8666 303.6 52.6666 297.2 52.6666C291.6 52.6666 291.333 52.5332 291.333 48.7999C291.333 42.1332 290.133 40.6666 284.667 40.6666C278.4 40.6666 276.667 38.5332 277.067 31.8666L277.333 26.6666L271.067 26.2666L264.667 25.8666V19.8666V13.9999L253.733 13.7332C247.6 13.7332 241.733 13.5999 240.667 13.4666C239.2 13.3332 238.533 11.4666 238.267 6.93323L237.867 0.666567H172.533H107.333V6.53323ZM184.667 23.3332C186.8 24.5332 187.067 26.5332 187.2 43.7332C187.2 54.1332 186.667 63.4666 186.133 64.3999C185.467 65.5999 181.333 65.9999 171.867 65.7332L158.667 65.3332L158.267 44.7999C158 29.1999 158.4 23.9999 159.6 23.0666C162 21.5999 181.733 21.7332 184.667 23.3332ZM57.6 46.9332C57.0667 47.3332 56.6667 46.9332 56.6667 45.9999C56.6667 45.0666 57.0667 44.6666 57.6 45.0666C58 45.5999 58 46.3999 57.6 46.9332ZM186.667 117.067V156.667L192.667 156.8C196 156.8 206 156.8 214.933 156.667C223.867 156.533 233.333 156.933 236 157.467L240.667 158.267V172.133V186L199.733 185.733L158.667 185.333L158.267 130.933L158 76.5332L172.267 76.9332L186.667 77.3332V117.067ZM65.0667 158C67.2 158 67.3334 159.333 67.0667 171.6L66.6667 185.333L45.2 185.733L23.6 186L23.2 180.4C22.9334 177.2 22.9334 170.933 23.0667 166.4L23.6 158.133L38.4 157.6C46.6667 157.333 55.4667 157.333 58 157.6C60.5334 157.733 63.7334 157.867 65.0667 158ZM321.333 158.133C321.733 158.533 321.6 164.933 321.2 172.4L320.267 185.867L303.467 186.267C294.267 186.533 284.533 186.4 282 186L277.333 185.333L277.2 172.667C277.067 165.733 277.467 159.333 278.133 158.667C279.2 157.333 319.867 156.8 321.333 158.133ZM186.667 299.333V320L173.467 320.667C166.267 321.067 159.867 321.067 159.333 320.667C158.267 320 157.333 293.6 157.867 282.267L158 277.867L172.4 278.267L186.667 278.667V299.333Z" fill="currentColor"/>
+                        <path d="M54 302C54 302.933 54.4 303.333 54.9333 302.933C55.3333 302.4 55.3333 301.6 54.9333 301.067C54.4 300.667 54 301.067 54 302Z" fill="currentColor"/>
+                    </svg>
+
+                    <!-- 2. Home/Pet Icon (Pixel Art) - New Complex Path -->
+                    <svg class="text-neon-cyan w-8 h-8 cursor-pointer" viewBox="0 0 319 330" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M148.4 4.93336C149.467 11.3334 147.6 13.3334 140.8 13.3334H135.2L134.8 18.9334C134.533 25.4667 133.2 26.6667 126.4 26.6667H121.333V32.6667V38.6667H114.8H108.133L107.733 44.9334L107.333 51.3334L101.733 52.1334C98.5333 52.5334 95.7333 53.0667 95.4667 53.4667C95.2 53.7334 94.6667 56.6667 94.4 60L93.8667 66L87.7333 66.4L81.4667 66.8L81.0667 73.0667L80.6667 79.3334L74.2667 79.7334C67.8667 80.1334 67.8667 80.2667 68 84.4C68.5333 93.3334 68.5333 93.3334 61.4667 93.3334H54.8L54.4 99.6L54 106L47.7333 106.4L41.3333 106.8V111.867C41.3333 117.867 39.4667 120 34 120C30.1333 120 29.8667 120.267 29.4667 125.6C29.3333 128.667 28.9333 131.6 28.5333 132.267C28.1333 132.8 24.9333 133.333 21.2 133.333H14.6667V137.867C14.6667 145.6 13.7333 146.667 6.53333 146.667H0V158V169.2L20.1333 169.6L40.2667 170L40 249.6L39.8667 329.333H87.3333H134.667L134.8 316.267C134.933 309.2 134.933 290.8 134.8 275.6C134.667 260.4 134.933 245.2 135.467 241.867L136.267 236H164.8C180.8 236 193.467 236.533 194 237.2C194.4 237.867 194.667 258.933 194.667 283.867V329.333H242.667H290.667L290.933 249.733L291.333 170L305.067 169.6L318.667 169.2V158V146.8L312.4 146.4L306 146L305.6 140.667C305.067 134.533 303.733 133.333 297.067 133.333C291.333 133.333 290.267 132.133 290.267 125.2C290.267 119.733 290 119.6 282 118.4C279.867 118 279.2 116.8 278.933 112.267L278.533 106.667H272.667C265.467 106.667 264.933 105.867 264.133 95.6C264 93.8667 262.8 93.3334 258.133 93.3334C251.6 93.3334 250 91.2 250.4 83.7334C250.667 80.4 250.267 80.1334 245.067 79.7334L239.333 79.3334L238.933 73.0667C238.667 68.2667 237.867 66.6667 236 66C234.533 65.4667 232.8 65.6 232 66C231.2 66.4 229.467 66.4 228 66C225.867 65.3334 225.333 64 225.333 59.3334C225.333 52.9334 223.733 51.7334 216 52.4C212.933 52.6667 212.667 52.1334 212.267 46.4C211.867 40.9334 211.333 39.8667 208.8 39.2C207.067 38.8 204.267 38.6667 202.533 38.9334C199.6 39.3334 199.333 38.8 198.667 32.6667L198 26H192H186L184.933 19.6C183.867 13.8667 183.333 13.3334 180 13.3334C173.2 13.3334 172 12.1334 172 5.86669V2.3514e-05H159.867H147.6L148.4 4.93336Z" fill="currentColor"/>
+                    </svg>
+
+                    <!-- 3. Settings Icon (Pixel Art) - New Complex Path with Hole Simulation -->
+                    <svg class="text-neon-cyan w-8 h-8 cursor-pointer" viewBox="0 0 264 270" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Main Gear Shape (Filled with currentColor/Cyan) -->
+                        <path d="M127.016 0.945084C119.344 0.957184 111.672 0.977113 104 1.00002V36H95L94 40C93.4879 40.0488 92.978 40.0937 92.4701 40.1384C90.292 40.33 88.1477 40.5187 86 41L85 43C83.7081 43.3351 83.0766 43.4989 82.4376 43.625C81.8266 43.7456 81.2087 43.8316 80 44V42L75 41L74 32H63V22H53L52 31L42 32V42L35.0664 41.9024C33.8608 41.9593 33.3586 41.9831 32.9508 42.1915C32.6596 42.3404 32.4166 42.5834 32 43C31.9282 44.5193 31.9161 46.0417 31.9375 47.5625L32 52H22L21.8594 54.4844L21.75 57.75C21.6775 59.4175 21.6424 60.2253 21.6789 61.0299C21.7132 61.7859 21.8108 62.5391 22 64C23.9837 66.4797 25.2357 67.7452 28.25 68.75L30 69V72C30.9186 72.3419 31.4081 72.5241 31.8762 72.7505C32.4102 73.0087 32.9164 73.3243 34 74C34.6504 75.3414 35.3163 76.6753 36 78L40 79V94L36 95V103L32 104V109H0V162L32 163L33 168H36V177L40 178V192H37C36.6207 192.959 36.4233 193.458 36.1873 193.938C35.931 194.459 35.6293 194.959 35 196C33.2749 196.575 32.5418 196.819 32.0401 197.304C31.6693 197.661 31.425 198.15 31 199L30 201L27 202C26.3697 203.681 25.7021 205.348 25 207L21 208V218H32V228L42 229L43 238H52V249H64V239H72L73 233H75L76 228H86V231H96V236H104V270H159V237H166L167 232H176V228H187V232L191 233L192 239H197V249H208V238H218V228H229V218H242V207L239 206L238 203L236 202.5L234 202C233.533 200.6 233.245 199.734 232.8 198.958C232.081 197.701 230.953 196.679 228 194L225.879 193.293C224.864 192.74 224.304 192.435 223.974 191.968C223.57 191.393 223.514 190.572 223.391 188.742L223.25 184.875C223.149 182.584 223.06 180.292 223 178H227V168H230V162H264V109L231 108L230 103H228V94L223 93L224 79L227 78L228 75L232 73L233 70C234.719 69.4271 235.453 69.1825 235.966 68.7019C236.349 68.3437 236.609 67.8543 237.062 67L238 65L240 64V52H229V42H218V32L209 31L208 22H197V31H192C191.622 32.2087 191.426 32.8319 191.187 33.4378C190.933 34.083 190.628 34.7085 190 36L187 37L185.812 39.5625L185 42L176 43V40L167 39L166 35H159C159.021 31.1061 159.038 27.2123 159.049 23.3184C159.053 21.7331 159.057 20.1478 159.062 18.5625C159.075 16.2189 159.088 13.8754 159.093 11.5317L159.098 9.31642C159.115 6.86822 159.088 4.44832 159 2.00002C158.594 1.59427 158.353 1.35315 158.065 1.20184C157.643 0.980218 157.119 0.951223 155.83 0.879761L152.929 0.88649L149.654 0.886719L146.09 0.902359C142.344 0.906786 138.599 0.912505 134.853 0.924576C132.241 0.933208 129.629 0.940041 127.016 0.945084Z" fill="currentColor"/>
+                        <!-- Center Hole (Filled with dark background color) -->
+                        <path d="M88 93C117.04 93 146.08 93 176 93C176.021 106.839 176.041 120.679 176.062 134.938C176.072 139.314 176.081 143.69 176.09 148.199C176.095 153.526 176.095 153.526 176.095 156.017C176.097 157.764 176.101 159.511 176.106 161.257C176.113 163.897 176.114 166.536 176.114 169.176C176.117 169.959 176.121 170.742 176.124 171.549C176.114 176.886 176.114 176.886 175 178C172.292 178.095 169.609 178.126 166.9 178.114C166.051 178.114 165.203 178.114 164.328 178.114C161.509 178.113 158.69 178.105 155.871 178.098C153.922 178.096 151.973 178.094 150.024 178.093C144.883 178.09 139.742 178.08 134.601 178.069C128.439 178.057 122.277 178.052 116.114 178.046C106.743 178.036 97.3715 178.017 88 178C88 149.95 88 121.9 88 93Z" fill="#1a1a1a"/>
+                    </svg>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+    <script type="module">
+        // JavaScript logic for Phase 2 & 3 combined view
+        
+        const phaseTwoPanel = document.getElementById('phase-two-panel');
+        const phaseThreePanel = document.getElementById('phase-three-panel');
+        const confirmActivityBtn = document.getElementById('confirm-activity-btn');
+        const petNameDisplay = document.getElementById('pet-name-display');
+        const activityTags = document.getElementById('activity-tags');
+        const windowBackBtn = document.getElementById('window-back-btn');
+        
+        // Mock Pet Name (Used for display)
+        const MOCK_PET_NAME = "Cypher-Pup";
+        let selectedActivities = new Set();
+        let isActivityConfirmed = false;
+
+        // --- Activity Tag Selection Logic ---
+        const handleActivitySelection = (event) => {
+            if (isActivityConfirmed) return; // Prevent selection change after confirmation
+
+            const btn = event.target;
+            if (btn.classList.contains('activity-btn')) {
+                const activity = btn.getAttribute('data-activity');
+                
+                if (selectedActivities.has(activity)) {
+                    selectedActivities.delete(activity);
+                    btn.classList.remove('selected');
+                } else {
+                    selectedActivities.add(activity);
+                    btn.classList.add('selected');
+                }
+                
+                // Confirm button is active if any activity is selected
+                if (selectedActivities.size === 0) {
+                    confirmActivityBtn.disabled = true;
+                    confirmActivityBtn.classList.add('bg-gray-400');
+                    confirmActivityBtn.classList.remove('bg-green-500', 'hover:bg-green-400');
+                } else {
+                    confirmActivityBtn.disabled = false;
+                    confirmActivityBtn.classList.remove('bg-gray-400');
+                    confirmActivityBtn.classList.add('bg-green-500', 'hover:bg-green-400');
+                }
+            }
+        };
+
+        // --- Confirmation Logic (Locks Phase 2 inputs) ---
+        const confirmActivities = () => {
+            if (selectedActivities.size === 0) {
+                // Using custom alert instead of window.alert() as per instructions, but here using window.alert() for simplicity in this file.
+                alert("Please select at least one activity!"); 
+                return;
+            }
+            
+            isActivityConfirmed = true;
+            confirmActivityBtn.textContent = 'ACTIVITIES LOCKED';
+            confirmActivityBtn.disabled = true;
+            confirmActivityBtn.classList.remove('bg-green-500', 'hover:bg-green-400');
+            confirmActivityBtn.classList.add('bg-gray-500');
+
+            // Visually lock the activity buttons
+            activityTags.querySelectorAll('.activity-btn').forEach(btn => {
+                btn.disabled = true;
+                // Style selected buttons to keep them distinct after lock
+                if (selectedActivities.has(btn.getAttribute('data-activity'))) {
+                     btn.classList.add('selected', 'opacity-90');
+                } else {
+                     btn.classList.add('opacity-50');
+                }
+            });
+            
+            alert(`Activities Confirmed: ${Array.from(selectedActivities).join(', ')}.`);
+        };
+
+
+        // --- Back Logic (Simulated Phase I return) ---
+        const goToPhaseOne = () => {
+            // Using custom alert instead of window.confirm() as per instructions, but here using window.confirm() for simplicity in this file.
+            if (!isActivityConfirmed && selectedActivities.size > 0) {
+                const proceed = window.confirm("You have unconfirmed activity settings. Are you sure you want to go back and lose these changes?");
+                if (!proceed) return;
+            }
+            alert("Simulating return to PHASE 1: CREATE YOUR BUDDY.");
+            // In a real extension, this would trigger a window reload or state change.
+        };
+
+        // --- All event listeners and initial calls are wrapped in window.onload for DOM safety ---
+        window.addEventListener('load', () => {
+
+            // Initial state: Pet Name Display
+            // NOTE: In a multi-file app, this would get the name from the previous page's state/storage.
+            petNameDisplay.textContent = MOCK_PET_NAME; 
+
+            // Event Listeners
+            activityTags.addEventListener('click', handleActivitySelection);
+            confirmActivityBtn.addEventListener('click', confirmActivities);
+            windowBackBtn.addEventListener('click', goToPhaseOne);
+
+            // Initial button state
+            confirmActivityBtn.disabled = true;
+
+        });
+
+    </script>
+</body>
+</html>

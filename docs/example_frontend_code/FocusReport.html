@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vibe Buddy Pet Creator</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Press Start 2P for Pixel Aesthetic -->
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        /* Define custom pixel styles */
+        .font-pixel {
+            font-family: 'Press Start 2P', cursive;
+        }
+
+        /* General Pixel Container Styling - Made smaller (max-w-2xl) */
+        .pixel-border {
+            border: 4px solid #1a1a1a;
+            box-shadow: 8px 8px 0 #000000; /* Deep shadow for 3D look */
+            background-color: #f0f0f0;
+        }
+        
+        /* Pixel Button Styling */
+        .pixel-button {
+            border: 3px solid #1a1a1a;
+            box-shadow: 4px 4px 0 #000000;
+            transition: all 0.1s;
+        }
+        .pixel-button:active:not(:disabled) { /* Only apply active state if not disabled */
+            box-shadow: 1px 1px 0 #000000;
+            transform: translate(3px, 3px);
+        }
+        .pixel-button:disabled {
+            cursor: not-allowed;
+        }
+
+
+        /* Input Styling */
+        input[type="text"], textarea {
+            border: 2px solid #1a1a1a;
+            box-shadow: 2px 2px 0 #000000;
+            font-family: monospace;
+            padding: 8px;
+            background-color: #ffffff;
+            font-size: 14px;
+        }
+
+        /* Aesthetic colors */
+        .neon-pink { background-color: #ff00ff; }
+        .neon-cyan { background-color: #00ffff; }
+        .dark-bg { background-color: #1a1a1a; }
+        .text-neon-pink { color: #ff00ff; }
+        .text-neon-cyan { color: #00ffff; }
+        
+        /* Hide element without taking up space */
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body class="bg-gray-800 flex items-center justify-center min-h-screen p-4">
+
+    <div class="pixel-border w-full max-w-2xl p-4">
+        <!-- Window Header -->
+        <div class="window-header neon-pink pixel-border border-2 p-2 mb-4 flex justify-between items-center dark-bg">
+            <h1 class="font-pixel text-lg sm:text-xl text-neon-cyan select-none">// V I B E B U D D Y . E X E</h1>
+            <div class="flex space-x-2">
+                <div class="w-4 h-4 neon-cyan pixel-border border-2 cursor-pointer"></div>
+                <div class="w-4 h-4 bg-red-600 pixel-border border-2 cursor-pointer"></div>
+            </div>
+        </div>
+
+        <!-- Main Content (Single Column) -->
+        <div id="app" class="space-y-6">
+            
+            <!-- PHASE I: Core Identity Forge (Static Form) -->
+            <div id="phase-one-panel" class="space-y-6">
+                <section class="p-4 pixel-border bg-white">
+                    <h2 class="font-pixel text-sm sm:text-base mb-4 text-neon-pink">// PHASE I: CORE IDENTITY FORGE</h2>
+                    
+                    <!-- 1. Core Entity Input -->
+                    <div class="mb-4">
+                        <label class="font-pixel text-xs mb-1 block">01. CORE ENTITY</label>
+                        <input type="text" id="core-entity" class="w-full" placeholder="e.g., A floating biomechanical ghost made of glitch code">
+                        <p class="text-xs text-gray-500 mt-1 font-mono">// Hint: Create unique, non-traditional forms, or customize a classic.</p>
+                    </div>
+
+                    <!-- 2. Unique Traits Input -->
+                    <div class="mb-4">
+                        <label class="font-pixel text-xs mb-1 block">02. UNIQUE TRAITS & DETAILS</label>
+                        <input type="text" id="core-traits" class="w-full" placeholder="e.g., Three glowing eyes, wearing broken ancient armor">
+                        <p class="text-xs text-gray-500 mt-1 font-mono">// Hint: Use 3-5 specific details to make it rich and imaginative.</p>
+                    </div>
+
+                    <!-- Preview & Prompt & Buttons Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+                        <!-- LEFT: Image Preview -->
+                        <div>
+                            <h3 class="font-pixel text-xs mb-2 text-neon-pink">// Pet Image Preview</h3>
+                            <!-- Placeholder Block -->
+                            <div id="image-preview-block" class="bg-gray-700 aspect-square border-4 border-black flex items-center justify-center text-xs text-white font-pixel leading-relaxed text-center">
+                                <p>IMAGE<br>PLACEHOLDER</p>
+                            </div>
+                        </div>
+
+                        <!-- RIGHT: Prompt Preview & Utility Buttons -->
+                        <div>
+                            <!-- Prompt Preview -->
+                            <h3 class="font-pixel text-xs mb-2 text-neon-cyan">// Real-Time Prompt Preview</h3>
+                            <div class="dark-bg p-3 h-24 overflow-y-auto text-neon-cyan font-mono text-sm border-2 border-black mb-4">
+                                <p id="prompt-preview" class="whitespace-pre-wrap">-- Prompt: (Pixel Art Style) --</p>
+                            </div>
+                            
+                            <!-- Random + Reset Buttons -->
+                            <div class="flex space-x-2">
+                                <button id="surprise-button" class="pixel-button flex-1 bg-yellow-400 font-pixel text-xs text-black hover:bg-yellow-300">
+                                    ✨ Inspiration
+                                </button>
+                                <button id="reset-button" class="pixel-button flex-1 bg-red-400 font-pixel text-xs text-black hover:bg-red-300">
+                                    ⟲ Reset All
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- NEW: Confirm Generation Button -->
+                <button id="generate-image-button" class="pixel-button w-full bg-blue-500 font-pixel text-sm text-white hover:bg-blue-400">
+                    Confirm & Generate Image
+                </button>
+
+                <button id="continue-button" class="pixel-button w-full bg-gray-400 font-pixel text-lg text-black opacity-50 cursor-not-allowed" disabled>
+                    Confirm Image & Proceed to Phase II (Behavior)
+                </button>
+            </div>
+            
+            <!-- PHASE II: Behavior & Context Binding (GIF Actions) - Initially Hidden -->
+            <div id="phase-two-panel" class="hidden space-y-6">
+                 <section class="p-4 pixel-border bg-white">
+                    <h2 class="font-pixel text-sm sm:text-base mb-4 text-neon-pink">// PHASE II: BEHAVIOR & CONTEXT BINDING</h2>
+                    <p class="text-sm font-mono mb-4 text-gray-700">// Define how your pet responds to different browsing contexts:</p>
+                    
+                    <!-- A. Focus Mode -->
+                    <div class="mb-4">
+                        <label class="font-pixel text-xs mb-1 block">04A. [ FOCUS MODE ] Study / Work State</label>
+                        <textarea id="focus-behavior" rows="2" class="w-full" placeholder="e.g., Shifts into a transparent blue line, performing a silent data-stream animation."></textarea>
+                        <p class="text-xs text-gray-500 mt-1 font-mono">// Context: Detected document/IDE or high-frequency input</p>
+                    </div>
+
+                    <!-- B. Chill Mode -->
+                    <div class="mb-4">
+                        <label class="font-pixel text-xs mb-1 block">04B. [ CHILL MODE ] Entertainment / Chill State</label>
+                        <textarea id="chill-behavior" rows="2" class="w-full" placeholder="e.g., Emits a low glitch scream and does an 8-bit rocking dance."></textarea>
+                        <p class="text-xs text-gray-500 mt-1 font-mono">// Context: Detected video/social media or gaming</p>
+                    </div>
+                    
+                    <button id="back-button" class="pixel-button w-full bg-gray-400 font-pixel text-sm text-black hover:bg-gray-300 mt-4">
+                        ← Back to Phase I (Modify Image)
+                    </button>
+                </section>
+
+                <button id="forge-button" class="pixel-button w-full bg-red-600 font-pixel text-lg text-white hover:bg-red-500">
+                    FORGE & ACTIVATE VIBE BUDDY
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <script type="module">
+        // JavaScript logic to build and display the prompt in real-time and manage phase transitions
+        
+        const coreEntityInput = document.getElementById('core-entity');
+        const coreTraitsInput = document.getElementById('core-traits');
+        const focusBehaviorInput = document.getElementById('focus-behavior');
+        const chillBehaviorInput = document.getElementById('chill-behavior');
+        const promptPreview = document.getElementById('prompt-preview');
+        const surpriseButton = document.getElementById('surprise-button');
+        const resetButton = document.getElementById('reset-button');
+        const continueButton = document.getElementById('continue-button');
+        const backButton = document.getElementById('back-button');
+        const phaseOnePanel = document.getElementById('phase-one-panel');
+        const phaseTwoPanel = document.getElementById('phase-two-panel');
+        const forgeButton = document.getElementById('forge-button');
+        
+        // New elements for image generation logic
+        const generateImageButton = document.getElementById('generate-image-button');
+        const imagePreviewBlock = document.getElementById('image-preview-block');
+        let isImageGenerated = false; // State tracker for image confirmation
+
+        // --- Helper Function to manage Continue Button State ---
+        const updateContinueButtonState = () => {
+            if (isImageGenerated) {
+                continueButton.disabled = false;
+                continueButton.classList.remove('bg-gray-400', 'opacity-50', 'cursor-not-allowed');
+                continueButton.classList.add('bg-green-500', 'hover:bg-green-400');
+            } else {
+                continueButton.disabled = true;
+                continueButton.classList.add('bg-gray-400', 'opacity-50', 'cursor-not-allowed');
+                continueButton.classList.remove('bg-green-500', 'hover:bg-green-400');
+            }
+        };
+
+        // --- Prompt Building Logic ---
+        const updatePromptPreview = () => {
+            // Reset generated state if user changes prompt inputs
+            if (isImageGenerated) {
+                isImageGenerated = false;
+                imagePreviewBlock.classList.remove('bg-green-300', 'text-black');
+                imagePreviewBlock.classList.add('bg-gray-700', 'text-white');
+                imagePreviewBlock.innerHTML = '<p>IMAGE<br>OUTDATED</p>';
+            }
+            
+            // Step 1: Base style (Fixed and pre-applied in AI model instructions)
+            let finalPrompt = "Style: Highly Detailed Pixel Art (8-bit, 16-bit)\n\n";
+
+            // Step 2: Core Identity
+            const entity = coreEntityInput.value.trim();
+            const traits = coreTraitsInput.value.trim();
+
+            if (entity || traits) {
+                finalPrompt += "// Identity Prompt (Static Form)\n";
+                const traitsString = traits ? `${traits}, ` : '';
+                finalPrompt += `CORE: ${traitsString}${entity || '[YOUR ENTITY HERE]'}\n`;
+            } else {
+                 finalPrompt += "// Identity Prompt (Static Form)\nCORE: [Start typing to see the AI prompt here!]\n";
+            }
+            
+            // Phase II behaviors are included for preview
+            const focusBehavior = focusBehaviorInput.value.trim();
+            const chillBehavior = chillBehaviorInput.value.trim();
+
+            if (focusBehavior || chillBehavior) {
+                finalPrompt += "\n// Behavior Actions (GIFs)\n";
+                if (focusBehavior) finalPrompt += `ACTION A (Focus): ${focusBehavior}\n`;
+                if (chillBehavior) finalPrompt += `ACTION B (Chill): ${chillBehavior}\n`;
+            }
+            
+            promptPreview.textContent = finalPrompt;
+            updateContinueButtonState();
+        };
+
+        // --- New: Image Generation Function ---
+        const generateImage = () => {
+            const entity = coreEntityInput.value.trim();
+            const traits = coreTraitsInput.value.trim();
+            const currentPrompt = promptPreview.textContent;
+
+            if (!entity && !traits) {
+                alert("Please define your CORE ENTITY and TRAITS first!");
+                return;
+            }
+            
+            // Set loading state
+            imagePreviewBlock.classList.remove('bg-gray-700', 'text-white', 'bg-green-300', 'text-black');
+            imagePreviewBlock.classList.add('dark-bg', 'text-yellow-400');
+            imagePreviewBlock.innerHTML = '<p>LOADING...<br>PLEASE WAIT</p>';
+            generateImageButton.disabled = true;
+            generateImageButton.classList.add('opacity-50');
+
+            // Simulate API call delay (3 seconds)
+            setTimeout(() => {
+                isImageGenerated = true;
+                
+                // Set success state (This would display the actual generated image in a real app)
+                imagePreviewBlock.classList.remove('dark-bg', 'text-yellow-400');
+                imagePreviewBlock.classList.add('bg-green-300', 'text-black');
+                imagePreviewBlock.innerHTML = `<p class="text-sm">IMAGE<br>GENERATED!</p><p class="text-[8px] mt-2">${entity.substring(0, 15)}...</p>`; 
+                
+                generateImageButton.disabled = false;
+                generateImageButton.classList.remove('opacity-50');
+
+                updateContinueButtonState(); // Enable continue button
+                
+            }, 3000); // 3 second delay
+        };
+
+        // --- Phase Transition Logic ---
+        const goToPhaseTwo = () => {
+            if (!isImageGenerated) {
+                alert("You must generate and confirm the static image first before proceeding!");
+                return;
+            }
+
+            phaseOnePanel.classList.add('hidden');
+            phaseTwoPanel.classList.remove('hidden');
+            updatePromptPreview(); 
+        };
+
+        const goToPhaseOne = () => {
+            phaseTwoPanel.classList.add('hidden');
+            phaseOnePanel.classList.remove('hidden');
+            updatePromptPreview();
+        };
+        
+        // --- Reset Logic ---
+        const resetInputs = () => {
+            coreEntityInput.value = '';
+            coreTraitsInput.value = '';
+            focusBehaviorInput.value = ''; 
+            chillBehaviorInput.value = '';
+            
+            isImageGenerated = false;
+            imagePreviewBlock.classList.remove('dark-bg', 'text-yellow-400', 'bg-green-300', 'text-black', 'bg-gray-700');
+            imagePreviewBlock.classList.add('bg-gray-700', 'text-white');
+            imagePreviewBlock.innerHTML = '<p>IMAGE<br>PLACEHOLDER</p>';
+
+            alert("All inputs have been reset!");
+            updatePromptPreview();
+        };
+
+
+        // --- Random Generation Logic (Surprise Me) ---
+        surpriseButton.addEventListener('click', () => {
+            const uniqueEntities = [
+                "A nine-tailed fox made of flickering glitch code",
+                "A floating biomechanical demon eye in an anti-matter field",
+                "A rebel vaporwave jellyfish with four Cthulhu-like tentacles",
+                "A low-poly robot composed of warped neon skeletal frame",
+                "A small, fuzzy creature made entirely of sparkling star dust"
+            ];
+            const uniqueTraits = [
+                "Angry, flashing with red light, possessing three eyes",
+                "Composed of obsidian and lava, wearing broken ancient armor",
+                "Translucent, constantly leaking data streams, flickering like an old VCR tape",
+                "Surrounded by steam and gears, with cyberpunk modifications",
+                "Gentle, covered in rainbow fur, and wearing tiny sunglasses"
+            ];
+            
+            coreEntityInput.value = uniqueEntities[Math.floor(Math.random() * uniqueEntities.length)];
+            coreTraitsInput.value = uniqueTraits[Math.floor(Math.random() * uniqueTraits.length)];
+            
+            updatePromptPreview();
+        });
+
+        // --- Event Listeners ---
+        
+        // Inputs that reset the generated state
+        coreEntityInput.addEventListener('input', updatePromptPreview);
+        coreTraitsInput.addEventListener('input', updatePromptPreview);
+        
+        // Inputs that DO NOT reset the generated state (Phase II inputs)
+        focusBehaviorInput.addEventListener('input', updatePromptPreview);
+        chillBehaviorInput.addEventListener('input', updatePromptPreview);
+
+        // New button listener
+        generateImageButton.addEventListener('click', generateImage);
+        
+        // Phase buttons
+        continueButton.addEventListener('click', goToPhaseTwo);
+        backButton.addEventListener('click', goToPhaseOne);
+        
+        // Reset button listener
+        resetButton.addEventListener('click', resetInputs);
+
+        // Final Forge button action
+        forgeButton.addEventListener('click', () => {
+            // In a real app, this would trigger the AI call for Image AND GIF generation
+            console.log("Triggering AI generation with final prompt:");
+            console.log(promptPreview.textContent);
+            alert("Submitting to AI engine for final generation (Image and GIF actions)...\n\n" + promptPreview.textContent);
+        });
+        
+        // Initial load
+        updatePromptPreview();
+        updateContinueButtonState(); // Ensure button is disabled on load
+
+    </script>
+</body>
+</html>

@@ -69,17 +69,17 @@ export default function FocusReport() {
       <div className="px-5 pb-20">
         {/* Title and Pet Image */}
         <div className="flex items-start justify-between mb-4">
-          <div>
-            <h1 className="text-[30px] font-bold mb-2" style={{ 
+          <div className="mr-4 flex-1">
+            <h1 className="text-[16px] font-bold mb-2 whitespace-nowrap" style={{ 
               fontFamily: '"Press Start 2P", cursive',
               color: '#ff00ff'
             }}>
-              FOCUS REPORT
+              DAILY REPORT
             </h1>
-            <p className="text-[10px] font-bold" style={{ fontFamily: 'monospace' }}>
+            <p className="text-[8px] font-bold" style={{ fontFamily: 'monospace' }}>
               {dateStr.toUpperCase()}, {timeStr}
             </p>
-            <p className="text-[10px] font-bold mt-2" style={{ fontFamily: 'monospace' }}>
+            <p className="text-[8px] font-bold mt-2" style={{ fontFamily: 'monospace' }}>
               "以宠物视角第一人称写一段走心文字：你今天专注了xx小时，我也连续吃了很久香蕉！你真是太棒了，本牛油果为你感到骄傲。Congrats! You reached your focus goal!睡个好觉吧！无论什么目标，你有这样的定力都会成功的！"
             </p>
           </div>
