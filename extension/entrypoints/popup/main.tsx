@@ -11,7 +11,7 @@ import { useAuthStore } from '@/lib/store'
 import Welcome from '@/pages/Welcome'
 import Home from '@/pages/Home'
 import CreatePet from '@/pages/CreatePet'
-import FocusSetup from '@/pages/FocusSetup'
+import Instruction from '@/pages/Instruction'
 import FocusReport from '@/pages/FocusReport'
 import Settings from '@/pages/Settings'
 
@@ -75,10 +75,10 @@ function App() {
             }
           />
           <Route
-            path="/focus-setup"
+            path="/instruction"
             element={
               <ProtectedRoute>
-                <FocusSetup />
+                <Instruction />
               </ProtectedRoute>
             }
           />

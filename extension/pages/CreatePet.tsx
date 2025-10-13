@@ -1,10 +1,13 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { usePet } from '@/hooks/usePet'
+import { CONFIG } from '@/lib/config'
+import { useAuthStore } from '@/lib/store/authStore'
 
 export default function CreatePet() {
   const navigate = useNavigate()
-  const { generatePet, generateBehaviorContent, isGenerating } = usePet()
+  const { generatePet, generateBehaviorContent, isGenerating, error: petError } = usePet()
+  const { tokens } = useAuthStore()
   const [petName, setPetName] = useState('')
   const [coreEntity, setCoreEntity] = useState('')
   const [uniqueTraits, setUniqueTraits] = useState('')
@@ -12,6 +15,36 @@ export default function CreatePet() {
   const [isImageConfirmed, setIsImageConfirmed] = useState(false)
   const [generationHistory, setGenerationHistory] = useState<string[]>([])
   const [currentHistoryIndex, setCurrentHistoryIndex] = useState(0)
+
+  const resolveAbsoluteUrl = (url: string): string => {
+    if (/^https?:\/\//i.test(url)) return url
+    const base = CONFIG.API_BASE_URL.replace(/\/$/, '')
+    const path = url.replace(/^\//, '')
+    return `${base}/${path}`
+  }
+
+  const fetchImageAsBlobUrl = async (url: string): Promise<string> => {
+    try {
+      const absoluteUrl = resolveAbsoluteUrl(url)
+      
+      // S3 presigned URLs don't need/accept Authorization headers
+      // Only add auth for non-S3 URLs
+      const isS3Url = /\.s3[.-].*\.amazonaws\.com/i.test(absoluteUrl)
+      const headers: HeadersInit = {}
+      
+      if (!isS3Url && tokens?.accessToken) {
+        headers['Authorization'] = `Bearer ${tokens.accessToken}`
+      }
+      
+      const res = await fetch(absoluteUrl, { headers })
+      if (!res.ok) throw new Error(`Image fetch failed: ${res.status}`)
+      const blob = await res.blob()
+      return URL.createObjectURL(blob)
+    } catch (e) {
+      console.error('Failed to convert image to blob URL, fallback to original URL:', e)
+      return url
+    }
+  }
 
   const handleGenerate = async () => {
     if (!coreEntity || !uniqueTraits) {
@@ -22,18 +55,34 @@ export default function CreatePet() {
     try {
       const prompt = `${coreEntity} with ${uniqueTraits}`
       const result = await generatePet(prompt)
+      console.log('generatePet result:', result)
 
-      // Backend returns images object with different states (social, focused, etc.)
-      const imageUrl = result?.images?.social
+      // Backend returns images object with different states (idle, happy, focused, etc.)
+      // Use the first available image
+      const imageUrl = result?.images?.idle || 
+                       result?.images?.happy || 
+                       result?.images?.focused ||
+                       result?.images?.tired ||
+                       result?.images?.excited ||
+                       Object.values(result?.images || {})[0]
+      
+      console.log('Selected image URL:', imageUrl)
+      
       if (imageUrl) {
-        setGeneratedImage(imageUrl)
+        const blobUrl = await fetchImageAsBlobUrl(imageUrl)
+        console.log('Blob URL created:', blobUrl)
+        setGeneratedImage(blobUrl)
         setGenerationHistory((prev) => [...prev, imageUrl])
         setCurrentHistoryIndex(generationHistory.length)
         setIsImageConfirmed(false) // Reset confirmation when new image is generated
+      } else {
+        console.error('No image URL found in result:', result)
+        alert('Image generated but no URL found. Check console for details.')
       }
     } catch (error) {
       console.error('Failed to generate pet:', error)
-      alert('Failed to generate pet. Please try again.')
+      const message = error instanceof Error ? error.message : 'Unknown error'
+      alert(`Failed to generate pet: ${message}`)
     }
   }
 
@@ -74,7 +123,7 @@ export default function CreatePet() {
         },
       })
 
-      navigate('/focus-setup')
+      navigate('/instruction')
     } catch (error) {
       console.error('Failed to save pet:', error)
       alert('Failed to save pet. Please try again.')
@@ -143,7 +192,7 @@ export default function CreatePet() {
   const previewState = getPreviewState()
 
   return (
-    <div className="h-[800px] w-[600px] bg-gray-800 flex items-center justify-center p-3 overflow-hidden">
+    <div className="h-[600px] w-[400px] bg-gray-800 flex items-center justify-center p-3 overflow-hidden">
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
         
@@ -192,12 +241,12 @@ export default function CreatePet() {
       <div className="pixel-border w-full p-3 overflow-y-auto max-h-full">
         {/* Window Header */}
         <div className="dark-bg pixel-border border-2 px-4 py-2 mb-4 flex justify-between items-center relative">
-          <button
+                    <button
             onClick={() => navigate('/home')}
             className="w-5 h-5 bg-neon-cyan pixel-border border-2 cursor-pointer flex items-center justify-center text-sm text-black font-bold pixel-button hover:bg-cyan-300 z-10 flex-shrink-0"
-          >
+                    >
             <span className="transform scale-x-150">←</span>
-          </button>
+                    </button>
 
           <h1 className="font-pixel text-sm absolute left-1/2 transform -translate-x-1/2 neon-cyan whitespace-nowrap">
             V I B E B U D D Y . E X E
@@ -215,7 +264,7 @@ export default function CreatePet() {
             PHASE 1. CREATE YOUR BUDDY
           </h1>
 
-          {/* Form Section */}
+        {/* Form Section */}
           <section className="p-3 pixel-border bg-white space-y-3">
             {/* Core Entity */}
             <div>
@@ -290,11 +339,7 @@ export default function CreatePet() {
               {isGenerating ? (
                 <p>LOADING...<br />PLEASE WAIT</p>
               ) : generatedImage ? (
-                isImageConfirmed ? (
-                  <img src={generatedImage} alt="Pet" className="w-full h-full object-cover" />
-                ) : (
-                  <p className="text-xs">IMAGE<br />GENERATED!</p>
-                )
+                <img src={generatedImage} alt="Pet" className="w-full h-full object-cover" />
               ) : (
                 <p>Pet Preview</p>
               )}
@@ -322,7 +367,7 @@ export default function CreatePet() {
                 </button>
               </div>
 
-              <div className="flex-grow flex items-center justify-center">
+              <div className="flex-grow flex items-center justify-center px-2">
                 <p className="text-[10px] font-mono text-gray-700 text-center">
                   {generatedImage && !isImageConfirmed
                     ? 'Preview generated. Click CONFIRM to lock.'
@@ -345,8 +390,8 @@ export default function CreatePet() {
               >
                 {isImageConfirmed ? 'CONFIRMED!' : 'CONFIRM'}
               </button>
-            </div>
           </div>
+        </div>
 
           {/* Pet Naming Input */}
           <section className="p-3 pixel-border bg-white">

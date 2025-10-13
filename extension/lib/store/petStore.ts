@@ -32,7 +32,7 @@ export const usePetStore = create<PetStoreState>((set, get) => ({
   // Initial state
   currentPet: null,
   availablePets: [],
-  currentState: 'social',
+  currentState: 'idle',
   position: CONFIG.PET_DEFAULT_POSITION,
   isGenerating: false,
   error: null,

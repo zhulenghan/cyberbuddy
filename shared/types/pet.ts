@@ -3,17 +3,19 @@
  */
 
 export enum PetState {
-  SOCIAL = 'social',
+  IDLE = 'idle',
+  HAPPY = 'happy',
   FOCUSED = 'focused',
-  ENTERTAINMENT = 'entertainment',
-  SHOPPING = 'shopping',
+  TIRED = 'tired',
+  EXCITED = 'excited',
 }
 
 export interface PetImages {
-  social: string
+  idle: string
+  happy: string
   focused: string
-  entertainment: string
-  shopping: string
+  tired: string
+  excited: string
 }
 
 export interface Pet {
@@ -50,8 +52,9 @@ export interface PetBehavior {
 }
 
 export interface PetBehaviorContent {
-  social: string
+  idle: string
+  happy: string
   focused: string
-  entertainment: string
-  shopping: string
+  tired: string
+  excited: string
 }

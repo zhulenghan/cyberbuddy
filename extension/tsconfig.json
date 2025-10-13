@@ -5,6 +5,7 @@
     "jsx": "react-jsx",
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
+    "rootDir": "./",
     "paths": {
       "@/*": ["./"],
       "@/components/*": ["./components/*"],

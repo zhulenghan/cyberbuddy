@@ -12,7 +12,7 @@ export function Footer({ className = '' }: FooterProps) {
   const navItems = [
     {
       icon: Timer,
-      path: '/focus-setup',
+      path: '/instruction',
       label: 'Focus',
     },
     {
@@ -46,10 +46,8 @@ export function Footer({ className = '' }: FooterProps) {
             >
               <Icon
                 className={`${
-                  item.highlight
-                    ? 'w-9 h-9 stroke-[3]'
-                    : 'w-10 h-10'
-                } text-black ${isActive ? 'scale-110' : ''}`}
+                  item.highlight ? 'w-9 h-9 stroke-[3]' : 'w-10 h-10'
+                } ${isActive ? 'text-[#ff00ff] scale-110' : 'text-[#00ffff]'}`}
               />
             </button>
           )
