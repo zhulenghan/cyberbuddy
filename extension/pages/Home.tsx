@@ -1,150 +1,250 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Button } from '@/components/ui/button'
 import { Footer } from '@/components/layout/Footer'
-import { PetGrid } from '@/components/pet/PetCard'
 import { usePet } from '@/hooks/usePet'
-import { useActivityTracker } from '@/hooks/useActivityTracker'
 import { useAuth } from '@/hooks/useAuth'
+
+type PetSlotData = 
+  | { id: string; name?: string; isCreate: false }
+  | { id: string; name: string; isCreate: true }
 
 export default function Home() {
   const navigate = useNavigate()
   const { currentPet, availablePets, selectPet } = usePet()
-  const { todayStats } = useActivityTracker()
   const { user } = useAuth()
-  const [selectedActivities, setSelectedActivities] = useState<string[]>([])
+  const [currentPetIndex, setCurrentPetIndex] = useState(0)
 
-  const activities = [
-    { id: 'work', label: 'WORK' },
-    { id: 'shopping', label: 'SHOPPING' },
-    { id: 'recreation', label: 'RECREATION' },
-    { id: 'research', label: 'RESEARCH' },
-    { id: 'reading', label: 'READING' },
-  ]
+  // Activities for display (read-only)
+  const activities = ['Work', 'Study', 'Reading', 'Music', 'Shopping', 'Social', '...']
 
-  const toggleActivity = (id: string) => {
-    setSelectedActivities((prev) =>
-      prev.includes(id) ? prev.filter((a) => a !== id) : [...prev, id]
-    )
+  // Calculate total slots (pets + 1 create slot)
+  const totalSlots = availablePets.length + 1
+
+  // Get pet data for a given index
+  const getPetData = (index: number): PetSlotData => {
+    if (index === availablePets.length) {
+      return { id: 'create', name: 'Create New Buddy', isCreate: true }
+    }
+    const pet = availablePets[index]
+    // Use prompt as name or generate a default name
+    const petName = pet.prompt?.split(' ').slice(0, 3).join(' ') || `Pet ${index + 1}`
+    return { id: pet.id, name: petName, isCreate: false }
   }
 
-  return (
-    <div className="h-[600px] w-[400px] bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 flex flex-col overflow-hidden relative">
-      {/* Background decorations */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-        <div className="absolute -top-20 -right-20 w-64 h-64 bg-purple-300/30 rounded-full blur-3xl"></div>
-        <div className="absolute -bottom-20 -left-20 w-48 h-48 bg-indigo-300/30 rounded-full blur-3xl"></div>
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 bg-pink-300/20 rounded-full blur-3xl"></div>
-      </div>
+  // Navigate pets
+  const handlePetNavigation = (direction: 'prev' | 'next') => {
+    if (direction === 'next') {
+      setCurrentPetIndex((prev) => (prev + 1) % totalSlots)
+    } else {
+      setCurrentPetIndex((prev) => (prev - 1 + totalSlots) % totalSlots)
+    }
+  }
 
-      <div className="relative z-10 flex flex-col h-full px-6 py-4 gap-3">
-        {/* Header */}
-        <div className="flex-shrink-0 flex items-center justify-between">
-          <div>
-            <p className="text-[15px] font-bold text-gray-800">User: {user?.name || user?.email || 'Guest'}</p>
-            <p className="text-[10px] text-gray-600">{user?.email}</p>
-          </div>
-          <div className="flex items-center gap-3">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-xs bg-white/80 hover:bg-white shadow-md rounded-lg px-3 py-1.5 font-semibold text-gray-700"
-            >
-              Share
-            </Button>
-            {user?.picture ? (
-              <img
-                src={user.picture}
-                alt={user.name || 'User'}
-                className="w-[48px] h-[48px] rounded-full border-2 border-white shadow-lg"
-              />
-            ) : (
-              <div className="w-[48px] h-[48px] rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center border-2 border-white shadow-lg">
-                <span className="text-sm font-bold text-white">
-                  {user?.name?.charAt(0) || 'U'}
-                </span>
-              </div>
-            )}
+  // Get visible pet indices
+  const prevIndex = (currentPetIndex - 1 + totalSlots) % totalSlots
+  const activeIndex = currentPetIndex
+  const nextIndex = (currentPetIndex + 1) % totalSlots
+
+  const activePet = getPetData(activeIndex)
+
+  return (
+    <div className="h-[600px] w-[400px] bg-gray-800 flex items-center justify-center p-3 overflow-hidden">
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+        .font-pixel { font-family: 'Press Start 2P', cursive; }
+        .pixel-border { border: 4px solid #1a1a1a; box-shadow: 8px 8px 0 #000000; background-color: #f0f0f0; }
+        .pixel-button { border: 3px solid #1a1a1a; box-shadow: 4px 4px 0 #000000; transition: all 0.1s; cursor: pointer; }
+        .pixel-button:active:not(:disabled) { box-shadow: 1px 1px 0 #000000; transform: translate(3px, 3px); }
+        .neon-pink { background-color: #ff00ff; }
+        .neon-cyan { background-color: #00ffff; }
+        .text-neon-pink { color: #ff00ff; }
+        .text-neon-cyan { color: #00ffff; }
+        .dark-bg { background-color: #1a1a1a; }
+        .activity-btn-display { font-size: 10px; padding: 6px 10px; background-color: #d0d0d0; margin: 4px; border-radius: 0; border: 2px solid #a0a0a0; box-shadow: 2px 2px 0 #808080; }
+        .circular-avatar { width: 40px; height: 40px; border-radius: 9999px; background-color: #ff00ff; border: 3px solid #1a1a1a; box-shadow: 2px 2px 0 #000000; cursor: pointer; display: flex; align-items: center; justify-content: center; font-family: 'Press Start 2P', cursive; font-size: 10px; color: #1a1a1a; user-select: none; }
+        .create-slot { border: 4px dashed #777; background-color: #e0e0e0; transition: all 0.1s; cursor: pointer; box-shadow: none; display: flex; align-items: center; justify-content: center; }
+        .create-slot:hover { border-color: #ff00ff; background-color: #f5f5f5; }
+        .plus-sign { font-size: 3rem; font-weight: bold; color: #777; line-height: 1; }
+      `}</style>
+
+      <div className="pixel-border w-full p-3 overflow-y-auto max-h-full">
+        {/* Window Header */}
+        <div className="dark-bg pixel-border border-2 px-3 py-2 mb-3 flex justify-between items-center relative">
+          <button
+            onClick={() => navigate(-1)}
+            className="w-5 h-5 neon-cyan pixel-border border-2 cursor-pointer flex items-center justify-center text-sm text-black font-bold pixel-button hover:bg-cyan-300 z-10 flex-shrink-0"
+          >
+            <span className="transform scale-x-150">←</span>
+          </button>
+          <h1 className="font-pixel text-sm absolute left-1/2 transform -translate-x-1/2 select-none text-neon-cyan whitespace-nowrap">
+            V I B E B U D D Y . E X E
+          </h1>
+          <div className="flex space-x-2 z-10 flex-shrink-0">
+            <div className="w-4 h-4 neon-cyan pixel-border border-2 cursor-pointer"></div>
+            <div className="w-4 h-4 bg-red-600 pixel-border border-2 cursor-pointer"></div>
           </div>
         </div>
 
-        {/* Activities Section */}
-        <div className="flex-shrink-0">
-          <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-5 shadow-lg border border-white/50">
-            <h2 className="text-xs font-bold text-center mb-3 text-gray-700">
-              YOUR ACTIVITIES TODAY
-            </h2>
-            <div className="grid grid-cols-3 gap-2">
-              {activities.map((activity) => (
-                <button
-                  key={activity.id}
-                  onClick={() => toggleActivity(activity.id)}
-                  className={`h-[32px] rounded-lg flex items-center justify-center text-[10px] font-semibold transition-all ${
-                    selectedActivities.includes(activity.id)
-                      ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-md'
-                      : 'bg-white/80 text-gray-700 hover:bg-white'
-                  }`}
-                >
-                  {activity.label}
-                </button>
-              ))}
+        {/* Main Content */}
+        <div className="space-y-4">
+          {/* User Info & Top Actions */}
+          <div className="flex justify-between items-start text-black text-[10px] font-mono p-2">
+            <div>
+              <p>Space ID : <span className="text-neon-pink">123456789</span></p>
+              <p>User ID : <span className="text-neon-pink">{user?.name || user?.email || 'Guest'}</span></p>
+            </div>
+            <div className="flex space-x-2 items-center">
+              <button className="pixel-button px-2 py-1 bg-gray-300 hover:bg-gray-200 text-[8px] font-pixel">
+                Share this extension
+              </button>
+              <div className="circular-avatar" title="Sign In / User Profile">
+                {user?.name?.charAt(0)?.toUpperCase() || 'U'}
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Generate Report Button */}
-        <div className="flex-shrink-0 text-center">
-          <Button
+          {/* YOUR ACTIVITIES TODAY */}
+          <section className="p-3 pixel-border bg-gray-100 space-y-2">
+            <h2 className="font-pixel text-[10px] text-center text-black mb-2">YOUR ACTIVITIES TODAY</h2>
+            <div className="flex flex-wrap justify-center">
+              {activities.map((activity) => (
+                <span key={activity} className="activity-btn-display font-pixel">
+                  {activity}
+                </span>
+              ))}
+            </div>
+          </section>
+
+          {/* Generate Report Button */}
+          <button
             onClick={() => navigate('/focus-report')}
-            className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 text-white text-sm font-bold h-auto py-2.5 px-8 rounded-xl shadow-lg"
+            className="pixel-button w-full bg-gray-400 font-pixel text-[10px] text-black hover:bg-gray-300 py-2"
           >
             Generate Report
-          </Button>
-        </div>
+          </button>
 
-        {/* Pet Collections */}
-        <div className="flex-shrink-0">
-          <h2 className="text-sm font-bold text-center mb-3 text-gray-800">
-            Your Cyber Buddy Collections
-          </h2>
-          <PetGrid
-            pets={availablePets.map(pet => ({
-              id: pet.id,
-              name: pet.name || 'Unnamed Pet',
-              imageUrl: pet.imageUrl,
-            }))}
-            onPetClick={(petId) => {
-              selectPet(petId)
-            }}
-            onAddClick={() => navigate('/create-pet')}
-            maxPets={3}
-          />
-        </div>
+          {/* Pet Collection View */}
+          <section className="text-center space-y-3">
+            <h2 className="font-pixel text-[10px] text-neon-cyan">Your Cyber Buddy Collections</h2>
 
-        {/* Spacer */}
-        <div className="flex-1 min-h-0"></div>
+            <div className="flex items-center justify-center space-x-2">
+              {/* Left Arrow Button */}
+              <button
+                onClick={() => handlePetNavigation('prev')}
+                className="w-6 h-6 text-neon-cyan hover:text-neon-pink transition duration-150 transform hover:scale-125"
+              >
+                <svg viewBox="0 0 16 16" fill="currentColor">
+                  <path d="M11 3L5 8l6 5V3zM9 8l2 2V6l-2 2z" />
+                </svg>
+              </button>
 
-        {/* Meet with Pet Button */}
-        <div className="flex-shrink-0 text-center">
-          <Button className="bg-white/80 hover:bg-white text-gray-800 h-auto py-2 px-8 rounded-xl shadow-md border border-white/50">
-            <span className="font-bold text-sm">Meet with </span>
-            <span className="font-normal italic text-sm">
-              {currentPet?.name || 'PET NAME HERE'}
-            </span>
-            <span className="font-bold text-sm"> right now!</span>
-          </Button>
-        </div>
+              {/* Three Slot Display Container */}
+              <div className="flex justify-center items-end space-x-1">
+                {/* Slot 1: Previous Pet (Smaller) */}
+                {(() => {
+                  const pet = getPetData(prevIndex)
+                  return (
+                    <div
+                      onClick={() => handlePetNavigation('prev')}
+                      className={`w-20 h-20 border-4 flex items-center justify-center text-center p-1 text-[8px] opacity-50 cursor-pointer ${
+                        pet.isCreate ? 'create-slot' : 'border-black bg-gray-100'
+                      }`}
+                    >
+                      {pet.isCreate ? (
+                        <span className="text-2xl font-bold text-gray-500">+</span>
+                      ) : (
+                        <p className="font-pixel text-neon-pink leading-tight">Pet Icon</p>
+                      )}
+                    </div>
+                  )
+                })()}
 
-        {/* Footer Navigation */}
-        <div className="flex-shrink-0">
+                {/* Slot 2: Active Pet (Larger) */}
+                {(() => {
+                  const pet = getPetData(activeIndex)
+                  return (
+                    <div
+                      className={`w-28 h-28 border-4 flex flex-col items-center justify-center text-center p-2 text-[10px] ${
+                        pet.isCreate ? 'create-slot' : 'border-black bg-gray-200'
+                      }`}
+                    >
+                      {pet.isCreate ? (
+                        <span className="plus-sign text-4xl">+</span>
+                      ) : (
+                        <>
+                          <p className="font-pixel text-neon-pink mb-1">Pet Icon</p>
+                          <p className="font-pixel text-black text-[8px] leading-tight">
+                            {pet.name || 'Unnamed'}
+                          </p>
+                        </>
+                      )}
+                    </div>
+                  )
+                })()}
+
+                {/* Slot 3: Next Pet (Smaller) */}
+                {(() => {
+                  const pet = getPetData(nextIndex)
+                  return (
+                    <div
+                      onClick={() => handlePetNavigation('next')}
+                      className={`w-20 h-20 border-4 flex items-center justify-center text-center p-1 text-[8px] opacity-50 cursor-pointer ${
+                        pet.isCreate ? 'create-slot' : 'border-black bg-gray-100'
+                      }`}
+                    >
+                      {pet.isCreate ? (
+                        <span className="text-2xl font-bold text-gray-500">+</span>
+                      ) : (
+                        <p className="font-pixel text-neon-pink leading-tight">Pet Icon</p>
+                      )}
+                    </div>
+                  )
+                })()}
+              </div>
+
+              {/* Right Arrow Button */}
+              <button
+                onClick={() => handlePetNavigation('next')}
+                className="w-6 h-6 text-neon-cyan hover:text-neon-pink transition duration-150 transform hover:scale-125"
+              >
+                <svg viewBox="0 0 16 16" fill="currentColor">
+                  <path d="M5 3l6 5-6 5V3zM7 8l2 2V6l-2 2z" />
+                </svg>
+              </button>
+            </div>
+
+            <p className="font-pixel text-[10px] text-black pt-1">
+              {activePet.isCreate ? 'New Buddy Slot' : activePet.name || 'PET NAME HERE'}
+            </p>
+
+            {/* Meet CTA */}
+            <button
+              onClick={() => {
+                if (activePet.isCreate) {
+                  navigate('/create-pet')
+                } else {
+                  alert(`Launching ${activePet.name} as your Vibe Buddy!`)
+                }
+              }}
+              className="pixel-button w-full bg-red-600 font-pixel text-[10px] text-white hover:bg-red-500 py-2"
+            >
+              {activePet.isCreate ? (
+                'Return to Creator'
+              ) : (
+                <>
+                  Meet with <span className="italic">{activePet.name || 'PET NAME HERE'}</span> right now!
+                </>
+              )}
+            </button>
+          </section>
+
+          {/* Footer / Guidance */}
+          <div className="text-center text-[8px] font-mono text-gray-400 mt-1">
+            Having question? &gt;Go to <span className="text-neon-cyan underline cursor-pointer">guide</span>
+          </div>
+
+          {/* Footer Navigation Icons */}
           <Footer />
-        </div>
-
-        {/* Help Link */}
-        <div className="flex-shrink-0 text-center py-2">
-          <p className="text-[8px] italic font-bold text-gray-600">
-            Having question? &gt;Go to <span className="underline">guide</span>
-          </p>
         </div>
       </div>
     </div>
