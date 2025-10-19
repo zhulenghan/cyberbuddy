@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { Footer } from '@/components/layout/Footer'
 import { useAuth } from '@/hooks/useAuth'
+import { ArrowLeftIcon } from 'raster-react'
 
 export default function Settings() {
   const navigate = useNavigate()
@@ -46,6 +47,10 @@ export default function Settings() {
       onClick: () => alert('Plan view coming soon!'),
     },
     {
+      label: 'RECOMMEND EXTENSION',
+      onClick: () => alert('Share function coming soon!'),
+    },
+    {
       label: 'CLEAR ALL DATA',
       onClick: handleClearData,
       danger: true,
@@ -72,16 +77,16 @@ export default function Settings() {
         .dark-bg { background-color: #1a1a1a; }
       `}</style>
 
-      <div className="pixel-border w-full p-3 overflow-y-auto max-h-full">
+      <div className="pixel-border w-full h-full p-4 overflow-y-auto">
         {/* Window Header */}
-        <div className="dark-bg pixel-border border-2 px-3 py-2 mb-3 flex justify-between items-center relative">
-          <button
-            onClick={() => navigate('/home')}
+        <div className="dark-bg pixel-border border-2 px-4 py-2 mb-4 flex justify-between items-center relative">
+            <button
+            onClick={() => navigate(-1)}
             className="w-5 h-5 neon-cyan pixel-border border-2 cursor-pointer flex items-center justify-center text-sm text-black font-bold pixel-button hover:bg-cyan-300 z-10 flex-shrink-0"
           >
-            <span className="transform scale-x-150">←</span>
+            <ArrowLeftIcon className="w-8 h-8 text-black stroke-[3]" />
           </button>
-          <h1 className="font-pixel text-sm absolute left-1/2 transform -translate-x-1/2 select-none text-neon-cyan whitespace-nowrap">
+          <h1 className="font-pixel text-[8px] absolute left-1/2 transform -translate-x-1/2 select-none text-neon-cyan whitespace-nowrap">
             V I B E B U D D Y . E X E
           </h1>
           <div className="flex space-x-2 z-10 flex-shrink-0">

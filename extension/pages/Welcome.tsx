@@ -65,12 +65,13 @@ export default function Welcome() {
           animation: blink 1s infinite;
         }
       `}</style>
-
+{/* Window Header */}
       <div className="pixel-border w-full p-4 overflow-y-auto max-h-full">
-        {/* Window Header */}
+          {/* ---do we need this part?
+          Window Header 
         <div className="dark-bg pixel-border border-2 px-3 py-2 mb-4 flex justify-between items-center relative">
           <div className="w-5 h-5 flex-shrink-0"></div>
-          <h1 className="font-pixel text-sm absolute left-1/2 transform -translate-x-1/2 select-none text-neon-cyan whitespace-nowrap">
+          <h1 className="font-pixel text-[10px] absolute left-1/2 transform -translate-x-1/2 select-none text-neon-cyan whitespace-nowrap">
             V I B E B U D D Y . E X E
           </h1>
           <div className="flex space-x-2 z-10 flex-shrink-0">
@@ -78,7 +79,7 @@ export default function Welcome() {
             <div className="w-4 h-4 bg-red-600 pixel-border border-2"></div>
           </div>
         </div>
-
+        */}
         {/* Main Content */}
         <div className="space-y-4">
           {/* Logo/Icon */}
@@ -90,7 +91,7 @@ export default function Welcome() {
 
           {/* Title */}
           <div className="text-center space-y-2">
-            <h2 className="font-pixel text-lg text-neon-pink">CYBER BUDDY</h2>
+            <h2 className="font-pixel text-lg text-neon-pink">ViBE BUDDY</h2>
             <p className="font-mono text-[10px] text-black">Your AI-powered focus companion</p>
           </div>
 

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { usePet } from '@/hooks/usePet'
 import { CONFIG } from '@/lib/config'
 import { useAuthStore } from '@/lib/store/authStore'
+import { ArrowLeftIcon } from 'raster-react'
 
 export default function CreatePet() {
   const navigate = useNavigate()
@@ -236,31 +237,32 @@ export default function CreatePet() {
         .neon-cyan { color: #00ffff; }
         .bg-neon-cyan { background-color: #00ffff; }
         .dark-bg { background-color: #1a1a1a; }
+        .text-neon-pink { color: #ff00ff; }
+        .text-neon-cyan { color: #00ffff; }
       `}</style>
 
-      <div className="pixel-border w-full p-3 overflow-y-auto max-h-full">
+      <div className="pixel-border w-full h-full p-4 overflow-y-auto">
         {/* Window Header */}
         <div className="dark-bg pixel-border border-2 px-4 py-2 mb-4 flex justify-between items-center relative">
-                    <button
-            onClick={() => navigate('/home')}
-            className="w-5 h-5 bg-neon-cyan pixel-border border-2 cursor-pointer flex items-center justify-center text-sm text-black font-bold pixel-button hover:bg-cyan-300 z-10 flex-shrink-0"
-                    >
-            <span className="transform scale-x-150">←</span>
-                    </button>
-
-          <h1 className="font-pixel text-sm absolute left-1/2 transform -translate-x-1/2 neon-cyan whitespace-nowrap">
+           <button
+            onClick={() => navigate(-1)}
+            className="w-5 h-5 neon-cyan pixel-border border-2 cursor-pointer flex items-center justify-center text-sm text-black font-bold pixel-button hover:bg-cyan-300 z-10 flex-shrink-0"
+          >
+            <ArrowLeftIcon className="w-4 h-4 bg-neon-cyan text-black stroke-[3]" />
+          </button>
+          <h1 className="font-pixel text-[8px] absolute left-1/2 transform -translate-x-1/2 select-none text-neon-cyan whitespace-nowrap">
             V I B E B U D D Y . E X E
           </h1>
 
-          <div className="flex space-x-2 z-10 flex-shrink-0">
-            <div className="w-4 h-4 bg-neon-cyan pixel-border border-2"></div>
+          <div className="flex space-x-1 z-10 flex-shrink-0">
+            <div className="w-4 h-4 pixel-border border-2" style={{ backgroundColor: '#00ffff' }}></div>
             <div className="w-4 h-4 bg-red-600 pixel-border border-2"></div>
           </div>
         </div>
 
         {/* Main Content */}
         <div className="space-y-3">
-          <h1 className="font-pixel text-lg mb-4 neon-pink text-center">
+          <h1 className="font-pixel text-[11px] mb-4 neon-pink text-center">
             PHASE 1. CREATE YOUR BUDDY
           </h1>
 
@@ -323,7 +325,7 @@ export default function CreatePet() {
           </button>
 
           {/* Preview Grid */}
-          <div className="grid grid-cols-2 gap-3 h-64">
+          <div className="grid grid-cols-2 gap-1 h-64">
             {/* LEFT: Pet Image Preview */}
             <div
               className={`aspect-square border-4 border-black flex items-center justify-center text-[10px] font-pixel leading-relaxed text-center ${
@@ -346,7 +348,7 @@ export default function CreatePet() {
             </div>
 
             {/* RIGHT: Generation History / Status */}
-            <div className="border-2 border-black bg-white p-2 flex flex-col justify-between">
+            <div className="aspect-square border-2 border-black bg-white p-2 flex flex-col justify-between">
               <div className="flex items-center justify-between text-black font-pixel text-[10px] border-b border-black pb-2">
                 <button
                   className="text-lg px-1 hover:bg-gray-200"
@@ -394,7 +396,7 @@ export default function CreatePet() {
         </div>
 
           {/* Pet Naming Input */}
-          <section className="p-3 pixel-border bg-white">
+          <section className="p-3 pixel-border bg-white" style={{ marginTop: '-90px' }}>
             <label className="font-pixel text-[10px] mb-1 block">What would you like your pet to be called?</label>
             <div className="flex gap-2">
               <input

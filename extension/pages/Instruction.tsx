@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Footer } from '@/components/layout/Footer'
+import { ArrowLeftIcon } from 'raster-react'
 
 export default function Instruction() {
   const navigate = useNavigate()
@@ -23,18 +24,21 @@ export default function Instruction() {
   }
 
   return (
-    <div className="h-[600px] w-[400px] bg-gray-800 flex items-center justify-center p-4 overflow-hidden">
+    <div className="h-[600px] w-[400px] bg-gray-800 flex items-center justify-center p-3 overflow-hidden">
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
         .font-pixel { font-family: 'Press Start 2P', cursive; }
         .pixel-border { border: 4px solid #1a1a1a; box-shadow: 8px 8px 0 #000000; background-color: #f0f0f0; }
-        .pixel-button { border: 3px solid #1a1a1a; box-shadow: 4px 4px 0 #000000; transition: all 0.1s; }
+        .pixel-button { border: 3px solid #000000ff; box-shadow: 4px 4px 0 #000000ff; transition: all 0.1s; cursor: pointer; }
         .pixel-button:active:not(:disabled) { box-shadow: 1px 1px 0 #000000; transform: translate(3px, 3px); }
-        .pixel-input { border: 2px solid #1a1a1a; box-shadow: 2px 2px 0 #000000; font-family: monospace; padding: 6px 8px; background-color: #ffffff; font-size: 12px; }
+        .pixel-input { border: 2px solid #000000ff; box-shadow: 2px 2px 0 #000000; font-family: monospace; padding: 6px 8px; background-color: #ffffff; font-size: 12px; }
         .text-neon-pink { color: #ff00ff; }
         .text-neon-cyan { color: #00ffff; }
         .dark-bg { background-color: #1a1a1a; }
-        .activity-btn { font-size: 10px; padding: 8px 12px; background-color: #d0d0d0; margin: 4px; border-radius: 0; }
+        .neon-pink { color: #ff00ff; }
+        .neon-cyan { color: #00ffff; }
+        .bg-neon-cyan { background-color: #00ffff; }
+        .activity-btn { font-size: 10px; padding: 6px 10px; background-color: #d0d0d0; margin: 4px; border-radius: 0; border: 2px solid #a0a0a0; box-shadow: 2px 2px 0 #808080; }
         .activity-btn.selected { background-color: #555555; color: #fff; box-shadow: 2px 2px 0 #000; }
         .phase-separator { height: 4px; background-color: #1a1a1a; margin: 16px 0; box-shadow: 0 4px 0 #000; }
       `}</style>
@@ -42,20 +46,18 @@ export default function Instruction() {
       <div className="pixel-border w-full h-full p-4 overflow-y-auto">
         {/* Window Header */}
         <div className="dark-bg pixel-border border-2 px-4 py-2 mb-4 flex justify-between items-center relative">
-          <button
+           <button
             onClick={() => navigate(-1)}
-            className="w-5 h-5 pixel-border border-2 cursor-pointer flex items-center justify-center text-sm text-black font-bold pixel-button"
-            style={{ backgroundColor: '#00ffff' }}
+            className="w-5 h-5 neon-cyan pixel-border border-2 cursor-pointer flex items-center justify-center text-sm text-black font-bold pixel-button hover:bg-cyan-300 z-10 flex-shrink-0"
           >
-            <span className="transform scale-x-150">←</span>
+            <ArrowLeftIcon className="w-4 h-4 bg-neon-cyan border-black text-black stroke-[3]" />
           </button>
-
-          <h1 className="font-pixel text-[7px] absolute left-1/2 transform -translate-x-1/2 text-neon-cyan whitespace-nowrap">
+          <h1 className="font-pixel text-[8px] absolute left-1/2 transform -translate-x-1/2 select-none text-neon-cyan whitespace-nowrap">
             V I B E B U D D Y . E X E
           </h1>
-
-          <div className="flex space-x-2 z-10 flex-shrink-0">
-            <div className="w-4 h-4 pixel-border border-2" style={{ backgroundColor: '#00ffff' }}></div>
+        {/* Square decorations */}
+          <div className="flex space-x-1 z-10 flex-shrink-0">
+            <div className="p-1 w-4 h-4 pixel-border border-2" style={{ backgroundColor: '#00ffff' }}></div>
             <div className="w-4 h-4 bg-red-600 pixel-border border-2"></div>
           </div>
         </div>
@@ -64,8 +66,8 @@ export default function Instruction() {
         <div className="space-y-3">
           <h1 className="font-pixel text-[10px] mb-2 text-neon-pink text-center">PHASE 2. SET ACTIVITY</h1>
           <section className="p-3 pixel-border bg-white space-y-3">
-            <p className="font-pixel text-[7px] mb-1 text-center">Which activity do you want to do?</p>
-            <div className="flex flex-wrap justify-center p-2">
+            <p className="font-pixel text-[10px] text-gray mb-2 text-center">Which activity do you want to do?</p>
+            <div className="font-pixel flex flex-wrap justify-center p-1">
               {activityOptions.map((name) => (
                 <button
                   key={name}
@@ -78,7 +80,7 @@ export default function Instruction() {
             </div>
             <button
               disabled={!isConfirmed}
-              className={`pixel-button w-full font-pixel text-xs ${isConfirmed ? 'bg-green-500 text-white hover:bg-green-400' : 'bg-gray-400 text-black'}`}
+              className={`py-1 pixel-button text-[7px] w-full font-pixel text-xs ${isConfirmed ? 'bg-green-500 text-white hover:bg-green-400' : 'bg-gray-400 text-black'}`}
             >
               {isConfirmed ? 'ACTIVITIES LOCKED' : 'CONFIRM'}
             </button>

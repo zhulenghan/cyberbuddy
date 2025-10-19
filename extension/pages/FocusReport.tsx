@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft, Trophy } from 'lucide-react'
+import { Trophy } from 'lucide-react'
+import { ArrowLeftIcon } from 'raster-react'
 import { Footer } from '@/components/layout/Footer'
 import { useActivityTracker } from '@/hooks/useActivityTracker'
 import { usePet } from '@/hooks/usePet'
@@ -58,11 +59,24 @@ export default function FocusReport() {
       border: '4px solid #1a1a1a',
       boxShadow: '8px 8px 0 #000000'
     }}>
-      {/* Back arrow */}
-      <div className="px-4 py-3 flex items-center">
-        <button onClick={() => navigate('/home')}>
-          <ArrowLeft className="w-6 h-6" />
+      {/* Window Header */}
+      <div className="dark-bg pixel-border border-2 px-4 py-2 mb-4 flex justify-between items-center relative">
+        <button
+          onClick={() => navigate('/home')}
+          className="w-5 h-5 pixel-border border-2 cursor-pointer flex items-center justify-center text-sm text-black font-bold pixel-button"
+          style={{ backgroundColor: '#00ffff' }}
+        >
+          <ArrowLeftIcon className="w-8 h-8 text-black stroke-[3]" />
         </button>
+
+        <h1 className="font-pixel text-[8px] absolute left-1/2 transform -translate-x-1/2 text-neon-cyan whitespace-nowrap">
+          V I B E B U D D Y . E X E
+        </h1>
+
+        <div className="flex space-x-2 z-10 flex-shrink-0">
+          <div className="w-4 h-4 pixel-border border-2" style={{ backgroundColor: '#00ffff' }}></div>
+          <div className="w-4 h-4 bg-red-600 pixel-border border-2"></div>
+        </div>
       </div>
 
       {/* Main Content */}

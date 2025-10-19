@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Footer } from '@/components/layout/Footer'
 import { usePet } from '@/hooks/usePet'
 import { useAuth } from '@/hooks/useAuth'
+import { ArrowLeftIcon } from 'raster-react'
 
 type PetSlotData = 
   | { id: string; name?: string; isCreate: false }
@@ -61,45 +62,47 @@ export default function Home() {
         .text-neon-cyan { color: #00ffff; }
         .dark-bg { background-color: #1a1a1a; }
         .activity-btn-display { font-size: 10px; padding: 6px 10px; background-color: #d0d0d0; margin: 4px; border-radius: 0; border: 2px solid #a0a0a0; box-shadow: 2px 2px 0 #808080; }
-        .circular-avatar { width: 40px; height: 40px; border-radius: 9999px; background-color: #ff00ff; border: 3px solid #1a1a1a; box-shadow: 2px 2px 0 #000000; cursor: pointer; display: flex; align-items: center; justify-content: center; font-family: 'Press Start 2P', cursive; font-size: 10px; color: #1a1a1a; user-select: none; }
+        .circular-avatar { width: 65px; height: 55px; border-radius: 80%; background-color: #ff00ff; border: 3px solid #1a1a1a; box-shadow: 2px 2px 0 #000000; cursor: pointer; display: flex; align-items: center; justify-content: center; font-family: 'Press Start 2P', cursive; font-size: 10px; color: #1a1a1a; user-select: none; }
         .create-slot { border: 4px dashed #777; background-color: #e0e0e0; transition: all 0.1s; cursor: pointer; box-shadow: none; display: flex; align-items: center; justify-content: center; }
         .create-slot:hover { border-color: #ff00ff; background-color: #f5f5f5; }
         .plus-sign { font-size: 3rem; font-weight: bold; color: #777; line-height: 1; }
       `}</style>
 
-      <div className="pixel-border w-full p-3 overflow-y-auto max-h-full">
+      <div className="pixel-border w-full h-full p-4 overflow-y-auto">
         {/* Window Header */}
-        <div className="dark-bg pixel-border border-2 px-3 py-2 mb-3 flex justify-between items-center relative">
-          <button
+        <div className="dark-bg pixel-border border-2 px-4 py-2 mb-4 flex justify-between items-center relative">
+           <button
             onClick={() => navigate(-1)}
             className="w-5 h-5 neon-cyan pixel-border border-2 cursor-pointer flex items-center justify-center text-sm text-black font-bold pixel-button hover:bg-cyan-300 z-10 flex-shrink-0"
           >
-            <span className="transform scale-x-150">←</span>
+            <ArrowLeftIcon className="w-8 h-8 bg-whitetext-black stroke-[3]" />
           </button>
-          <h1 className="font-pixel text-sm absolute left-1/2 transform -translate-x-1/2 select-none text-neon-cyan whitespace-nowrap">
+          <h1 className="font-pixel text-[8px] absolute left-1/2 transform -translate-x-1/2 select-none text-neon-cyan whitespace-nowrap">
             V I B E B U D D Y . E X E
           </h1>
-          <div className="flex space-x-2 z-10 flex-shrink-0">
-            <div className="w-4 h-4 neon-cyan pixel-border border-2 cursor-pointer"></div>
-            <div className="w-4 h-4 bg-red-600 pixel-border border-2 cursor-pointer"></div>
-          </div>
+
+          <div className="flex space-x-1 z-10 flex-shrink-0">
+            <div className="w-4 h-4 pixel-border border-2" style={{ backgroundColor: '#00ffff' }}></div>
+            <div className="w-4 h-4 bg-red-600 pixel-border border-2"></div>
+        </div>
         </div>
 
         {/* Main Content */}
         <div className="space-y-4">
           {/* User Info & Top Actions */}
           <div className="flex justify-between items-start text-black text-[10px] font-mono p-2">
-            <div>
-              <p>Space ID : <span className="text-neon-pink">123456789</span></p>
-              <p>User ID : <span className="text-neon-pink">{user?.name || user?.email || 'Guest'}</span></p>
-            </div>
+            
             <div className="flex space-x-2 items-center">
-              <button className="pixel-button px-2 py-1 bg-gray-300 hover:bg-gray-200 text-[8px] font-pixel">
-                Share this extension
-              </button>
               <div className="circular-avatar" title="Sign In / User Profile">
                 {user?.name?.charAt(0)?.toUpperCase() || 'U'}
               </div>
+              <div>
+              <p className="font-bold">Space ID : <span className="text-neon-pink">123456789</span></p>
+              <p className="font-bold">User ID : <br /><span className="text-neon-pink">{user?.name || user?.email || 'Guest'}</span></p>
+              </div>
+              <button className="pixel-button px-2 py-1 bg-gray-300 hover:bg-gray-200 text-[8px] font-pixel">
+                Share this extension
+              </button>
             </div>
           </div>
 

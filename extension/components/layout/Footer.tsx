@@ -1,5 +1,6 @@
 import { useNavigate, useLocation } from 'react-router-dom'
-import { Home, Settings, Timer } from 'lucide-react'
+import { HomeIcon, ClockIcon, CircleAlertIcon } from 'raster-react' 
+//change to pixel icons from raster-react
 
 interface FooterProps {
   className?: string
@@ -11,18 +12,18 @@ export function Footer({ className = '' }: FooterProps) {
 
   const navItems = [
     {
-      icon: Timer,
+      icon: ClockIcon,
       path: '/instruction',
       label: 'Focus',
     },
     {
-      icon: Home,
+      icon: HomeIcon,
       path: '/home',
       label: 'Home',
       highlight: true, // Home icon has special styling
     },
     {
-      icon: Settings,
+      icon: CircleAlertIcon,
       path: '/settings',
       label: 'Settings',
     },
@@ -46,7 +47,7 @@ export function Footer({ className = '' }: FooterProps) {
             >
               <Icon
                 className={`${
-                  item.highlight ? 'w-9 h-9 stroke-[3]' : 'w-10 h-10'
+                  item.highlight ? 'w-11 h-11 stroke-[3]' : 'w-10 h-10'
                 } ${isActive ? 'text-[#ff00ff] scale-110' : 'text-[#00ffff]'}`}
               />
             </button>

@@ -23,7 +23,7 @@ export function Header({ showBack = true, title, className = '', children }: Hea
         </button>
       )}
       {title && (
-        <h1 className="text-lg font-bold flex-1">{title}</h1>
+        <h1 className="font-pixel text-xl font-bold flex-1" style={{color: 'red'}}>{title}</h1>
       )}
       {children}
     </div>
