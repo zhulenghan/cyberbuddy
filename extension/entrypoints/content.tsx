@@ -9,7 +9,6 @@
 
 import { createRoot } from 'react-dom/client'
 import PetWidget from './content/PetWidget'
-import '@/assets/styles/globals.css'
 
 export default defineContentScript({
   matches: ['<all_urls>'],
@@ -18,6 +17,53 @@ export default defineContentScript({
 
   async main(ctx) {
     console.log('Cyber Buddy content script loaded')
+
+    // Inject CSS styles
+    const style = document.createElement('style')
+    style.textContent = `
+      @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+      
+      .cyber-buddy-pet-widget {
+        font-family: 'Press Start 2P', monospace;
+        user-select: none;
+        pointer-events: auto;
+        z-index: 9999;
+      }
+      
+      .cyber-buddy-pet-widget * {
+        box-sizing: border-box;
+      }
+      
+      .pixel-art {
+        image-rendering: pixelated;
+        image-rendering: -moz-crisp-edges;
+        image-rendering: crisp-edges;
+      }
+      
+      @keyframes bounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+      }
+      
+      @keyframes typing {
+        0%, 20% { opacity: 0.3; }
+        40% { opacity: 1; }
+        60%, 100% { opacity: 0.3; }
+      }
+      
+      .typing-animation {
+        animation: typing 1.4s infinite;
+      }
+      
+      .cyber-buddy-pet-widget button:hover {
+        transform: scale(1.05);
+      }
+      
+      .cyber-buddy-pet-widget button:active {
+        transform: scale(0.95);
+      }
+    `
+    document.head.appendChild(style)
 
     // Create UI container
     const ui = await createShadowRootUi(ctx, {
@@ -53,8 +99,13 @@ export default defineContentScript({
 /**
  * Handle messages from background service
  */
-function handleMessage(message: any) {
+function handleMessage(message: any, sender: any, sendResponse: any) {
   switch (message.type) {
+    case 'PING':
+      // Respond to ping to confirm content script is loaded
+      sendResponse({ pong: true })
+      break
+
     case 'PET_STATE_CHANGE':
       // Pet state change will be handled by PetWidget component via event
       window.dispatchEvent(
@@ -64,10 +115,21 @@ function handleMessage(message: any) {
       )
       break
 
+    case 'SHOW_PET':
+    case 'HIDE_PET':
+      // Pet visibility will be handled by PetWidget component via storage change
+      window.postMessage({
+        type: 'TOGGLE_PET_VISIBILITY',
+        visible: message.payload.visible,
+      }, '*')
+      break
+
     case 'PAGE_CLASSIFIED':
       console.log('Page classified:', message.payload)
       break
   }
+  
+  return true // Keep message channel open for async response
 }
 
 /**

@@ -18,7 +18,8 @@ export default defineConfig({
       'storage',
       'tabs',
       'idle',
-      'identity'
+      'identity',
+      'scripting'
     ],
     host_permissions: [
       'https://*.cyberbuddy.com/*',

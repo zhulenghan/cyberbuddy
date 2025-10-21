@@ -4,6 +4,8 @@ import { Footer } from '@/components/layout/Footer'
 import { usePet } from '@/hooks/usePet'
 import { useAuth } from '@/hooks/useAuth'
 import { ArrowLeftIcon } from 'raster-react'
+import { showPet } from '@/lib/utils/petControl'
+import { debugPetData } from '@/lib/utils/debugPet'
 
 type PetSlotData = 
   | { id: string; name?: string; isCreate: false }
@@ -222,11 +224,17 @@ export default function Home() {
 
             {/* Meet CTA */}
             <button
-              onClick={() => {
+              onClick={async () => {
                 if (activePet.isCreate) {
                   navigate('/create-pet')
                 } else {
-                  alert(`Launching ${activePet.name} as your Vibe Buddy!`)
+                  // Debug pet data first
+                  console.log('=== DEBUGGING PET DATA ===')
+                  await debugPetData()
+                  
+                  // Select this pet and show it on the page
+                  await selectPet(activePet.id)
+                  await showPet()
                 }
               }}
               className="pixel-button w-full bg-red-600 font-pixel text-[10px] text-white hover:bg-red-500 py-2"

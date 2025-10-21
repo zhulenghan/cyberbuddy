@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Footer } from '@/components/layout/Footer'
 import { ArrowLeftIcon } from 'raster-react'
+import { showPet } from '@/lib/utils/petControl'
 
 export default function Instruction() {
   const navigate = useNavigate()
@@ -108,7 +109,10 @@ export default function Instruction() {
           </section>
 
           <button
-            onClick={() => navigate('/home')}
+            onClick={async () => {
+              await showPet()
+              navigate('/home')
+            }}
             className="pixel-button w-full bg-red-600 font-pixel text-[10px] text-white hover:bg-red-500 py-2.5"
           >
             Meet with your buddy now!

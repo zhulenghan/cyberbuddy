@@ -99,14 +99,17 @@ export default function CreatePet() {
     }
 
     try {
-      // Get the generated pet from the store
+      // The pet should already be generated and stored by generatePet()
+      // We just need to generate behavior content if not already done
       const prompt = `${coreEntity} with ${uniqueTraits}`
-      const result = await generatePet(prompt)
       
-      if (result) {
+      // Get the current pet from the store (should be the one we just generated)
+      const { currentPet } = usePet()
+      
+      if (currentPet) {
         // Generate behavior content for the pet
         try {
-          await generateBehaviorContent(result.id)
+          await generateBehaviorContent(currentPet.id)
           console.log('Behavior content generated successfully')
         } catch (error) {
           console.warn('Failed to generate behavior content:', error)
@@ -114,20 +117,12 @@ export default function CreatePet() {
         }
       }
 
-      // Save pet to storage - the hook will handle this
-      await chrome.storage.local.set({
-        currentPet: {
-          name: petName,
-          prompt: prompt,
-          imageUrl: generatedImage,
-          createdAt: Date.now(),
-        },
-      })
-
+      // Navigate to instruction page
+      // The pet is already stored by the generatePet() function
       navigate('/instruction')
     } catch (error) {
-      console.error('Failed to save pet:', error)
-      alert('Failed to save pet. Please try again.')
+      console.error('Failed to proceed:', error)
+      alert('Failed to proceed. Please try again.')
     }
   }
 

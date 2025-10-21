@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
+import { CONFIG } from '@/lib/config'
+import { debugAllStorage } from '@/lib/utils/debugStorage'
 
 export default function Welcome() {
   const [isLoggingIn, setIsLoggingIn] = useState(false)
@@ -10,13 +12,21 @@ export default function Welcome() {
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated && !isLoading) {
-      // Check if user has created a pet
-      chrome.storage.local.get(['currentPet']).then(({ currentPet }) => {
-        if (currentPet) {
-          navigate('/home')
-        } else {
-          navigate('/create-pet')
-        }
+      // Debug storage first
+      debugAllStorage().then(() => {
+        // Check if user has created a pet using the correct storage key
+        chrome.storage.local.get([CONFIG.STORAGE_KEYS.CURRENT_PET]).then((result) => {
+          const currentPet = result[CONFIG.STORAGE_KEYS.CURRENT_PET]
+          console.log('Welcome: Checking for current pet:', currentPet)
+          
+          if (currentPet) {
+            console.log('Welcome: Pet found, navigating to home')
+            navigate('/home')
+          } else {
+            console.log('Welcome: No pet found, navigating to create-pet')
+            navigate('/create-pet')
+          }
+        })
       })
     }
   }, [isAuthenticated, isLoading, navigate])
