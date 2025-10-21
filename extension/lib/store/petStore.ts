@@ -18,7 +18,7 @@ interface PetStoreState {
   error: string | null
 
   // Actions
-  generatePet: (prompt: string, style?: 'pixel' | '3d') => Promise<Pet>
+  generatePet: (prompt: string, style?: 'pixel' | '3d', name?: string) => Promise<Pet>
   generateBehaviorContent: (petId: string) => Promise<PetBehaviorContent>
   selectPet: (petId: string) => Promise<void>
   loadPets: () => Promise<void>
@@ -38,7 +38,7 @@ export const usePetStore = create<PetStoreState>((set, get) => ({
   error: null,
 
   // Generate new pet
-  generatePet: async (prompt: string, style: 'pixel' | '3d' = 'pixel') => {
+  generatePet: async (prompt: string, style: 'pixel' | '3d' = 'pixel', name?: string) => {
     set({ isGenerating: true, error: null })
 
     try {
@@ -51,7 +51,7 @@ export const usePetStore = create<PetStoreState>((set, get) => ({
         throw new Error(response.error?.message || 'Failed to generate pet')
       }
 
-      const pet = response.data as Pet
+      const pet = { ...response.data, name } as Pet
 
       // Save to IndexedDB
       await indexedDB.savePet(pet)

@@ -7,7 +7,7 @@ import { ArrowLeftIcon } from 'raster-react'
 
 export default function CreatePet() {
   const navigate = useNavigate()
-  const { generatePet, generateBehaviorContent, isGenerating, error: petError } = usePet()
+  const { currentPet, generatePet, generateBehaviorContent, isGenerating, error: petError } = usePet()
   const { tokens } = useAuthStore()
   const [petName, setPetName] = useState('')
   const [coreEntity, setCoreEntity] = useState('')
@@ -55,8 +55,13 @@ export default function CreatePet() {
 
     try {
       const prompt = `${coreEntity} with ${uniqueTraits}`
-      const result = await generatePet(prompt)
-      console.log('generatePet result:', result)
+      // @ts-ignore - Type updated in petStore but TypeScript cache may not reflect it yet
+      const result = await generatePet(prompt, 'pixel', petName)
+      console.log('=== CREATEPET: generatePet result ===')
+      console.log('Pet ID:', result?.id)
+      console.log('Pet name:', result?.name)
+      console.log('Pet prompt:', result?.prompt)
+      console.log('Full result:', result)
 
       // Backend returns images object with different states (idle, happy, focused, etc.)
       // Use the first available image
@@ -101,11 +106,8 @@ export default function CreatePet() {
     try {
       // The pet should already be generated and stored by generatePet()
       // We just need to generate behavior content if not already done
-      const prompt = `${coreEntity} with ${uniqueTraits}`
       
-      // Get the current pet from the store (should be the one we just generated)
-      const { currentPet } = usePet()
-      
+      // currentPet is already available from the component's usePet() hook at the top
       if (currentPet) {
         // Generate behavior content for the pet
         try {

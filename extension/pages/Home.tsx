@@ -29,8 +29,12 @@ export default function Home() {
       return { id: 'create', name: 'Create New Buddy', isCreate: true }
     }
     const pet = availablePets[index]
-    // Use prompt as name or generate a default name
-    const petName = pet.prompt?.split(' ').slice(0, 3).join(' ') || `Pet ${index + 1}`
+    console.log('Home: Pet data for index', index, ':', pet)
+    console.log('Home: pet.name:', pet.name)
+    console.log('Home: pet.prompt:', pet.prompt)
+    // Use custom name, or prompt as fallback, or generate a default name
+    const petName = pet.name || pet.prompt?.split(' ').slice(0, 3).join(' ') || `Pet ${index + 1}`
+    console.log('Home: Using display name:', petName)
     return { id: pet.id, name: petName, isCreate: false }
   }
 

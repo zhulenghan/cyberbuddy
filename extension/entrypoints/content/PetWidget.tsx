@@ -206,7 +206,12 @@ export default function PetWidget() {
         const currentPet = result[CONFIG.STORAGE_KEYS.CURRENT_PET]
         if (currentPet) {
           const pet = currentPet
-          setPetName(pet.prompt || 'Buddy')
+          console.log('PetWidget: Pet data:', pet)
+          console.log('PetWidget: pet.name:', pet.name)
+          console.log('PetWidget: pet.prompt:', pet.prompt)
+          const displayName = pet.name || pet.prompt || 'Buddy'
+          console.log('PetWidget: Using display name:', displayName)
+          setPetName(displayName)
 
           // Debug pet data
           console.log('=== PETWIDGET DEBUG ===')
@@ -276,7 +281,7 @@ export default function PetWidget() {
         const pet = changes[CONFIG.STORAGE_KEYS.CURRENT_PET].newValue
         console.log('Pet data changed:', pet)
         if (pet) {
-          setPetName(pet.prompt || 'Buddy')
+          setPetName(pet.name || pet.prompt || 'Buddy')
           // Map frontend states to backend states
           const stateMapping: Record<PetState, string> = {
             idle: 'social',

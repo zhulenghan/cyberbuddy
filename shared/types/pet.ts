@@ -21,6 +21,7 @@ export interface PetImages {
 export interface Pet {
   id: string
   prompt: string
+  name?: string // Pet's custom name
   images: PetImages
   style: 'pixel' | '3d'
   behaviorContent?: PetBehaviorContent
