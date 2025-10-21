@@ -52,9 +52,12 @@ export const usePetStore = create<PetStoreState>((set, get) => ({
       }
 
       const pet = { ...response.data, name } as Pet
+      console.log('petStore.generatePet: Created pet with name:', pet.name)
+      console.log('petStore.generatePet: Full pet object:', pet)
 
       // Save to IndexedDB
       await indexedDB.savePet(pet)
+      console.log('petStore.generatePet: Saved to IndexedDB')
 
       // Update available pets
       const pets = [...get().availablePets, pet]
@@ -62,9 +65,11 @@ export const usePetStore = create<PetStoreState>((set, get) => ({
         availablePets: pets,
         isGenerating: false,
       })
+      console.log('petStore.generatePet: Updated availablePets, count:', pets.length)
 
       // Auto-select if first pet
       if (pets.length === 1) {
+        console.log('petStore.generatePet: Auto-selecting first pet')
         await get().selectPet(pet.id)
       }
 
@@ -120,11 +125,15 @@ export const usePetStore = create<PetStoreState>((set, get) => ({
 
   // Select active pet
   selectPet: async (petId: string) => {
+    console.log('petStore.selectPet: Selecting pet ID:', petId)
     const pet = get().availablePets.find((p) => p.id === petId)
 
     if (!pet) {
       throw new Error('Pet not found')
     }
+
+    console.log('petStore.selectPet: Found pet with name:', pet.name)
+    console.log('petStore.selectPet: Full pet object:', pet)
 
     // Update all pets' isActive status
     const updatedPets = get().availablePets.map((p) => ({
@@ -137,6 +146,7 @@ export const usePetStore = create<PetStoreState>((set, get) => ({
       chromeStorage.set(CONFIG.STORAGE_KEYS.CURRENT_PET, pet),
       ...updatedPets.map((p) => indexedDB.savePet(p)),
     ])
+    console.log('petStore.selectPet: Saved to storage with name:', pet.name)
 
     set({
       currentPet: pet,

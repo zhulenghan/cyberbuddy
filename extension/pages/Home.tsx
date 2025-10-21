@@ -16,6 +16,8 @@ export default function Home() {
   const { currentPet, availablePets, selectPet, deletePet } = usePet()
   const { user } = useAuth()
   const [currentPetIndex, setCurrentPetIndex] = useState(0)
+  const [editingName, setEditingName] = useState(false)
+  const [newName, setNewName] = useState('')
 
   // Activities for display (read-only)
   const activities = ['Work', 'Study', 'Reading', 'Music', 'Shopping', 'Social', '...']

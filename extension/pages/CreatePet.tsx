@@ -1,9 +1,13 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { usePet } from '@/hooks/usePet'
+import { usePetStore } from '@/lib/store/petStore'
 import { CONFIG } from '@/lib/config'
 import { useAuthStore } from '@/lib/store/authStore'
 import { ArrowLeftIcon } from 'raster-react'
+import { apiClient } from '@/lib/api' // Import API client
+import { indexedDBStorage } from '@/lib/storage' // Import indexedDBStorage
+import type { Pet } from '@shared/types' // Import Pet type
 
 export default function CreatePet() {
   const navigate = useNavigate()
@@ -16,6 +20,7 @@ export default function CreatePet() {
   const [isImageConfirmed, setIsImageConfirmed] = useState(false)
   const [generationHistory, setGenerationHistory] = useState<string[]>([])
   const [currentHistoryIndex, setCurrentHistoryIndex] = useState(0)
+  const [tempPetData, setTempPetData] = useState<any>(null) // Store temporary pet data before confirmation
 
   const resolveAbsoluteUrl = (url: string): string => {
     if (/^https?:\/\//i.test(url)) return url
@@ -55,22 +60,33 @@ export default function CreatePet() {
 
     try {
       const prompt = `${coreEntity} with ${uniqueTraits}`
-      // @ts-ignore - Type updated in petStore but TypeScript cache may not reflect it yet
-      const result = await generatePet(prompt, 'pixel', petName)
-      console.log('=== CREATEPET: generatePet result ===')
-      console.log('Pet ID:', result?.id)
-      console.log('Pet name:', result?.name)
-      console.log('Pet prompt:', result?.prompt)
-      console.log('Full result:', result)
+      
+      // Call API directly without saving to store
+      console.log('=== CREATEPET: Generating pet images (not saving yet) ===')
+      const response = await apiClient.post('/pets', {
+        prompt,
+        style: 'pixel',
+      })
+
+      if (!response.success || !response.data) {
+        throw new Error(response.error?.message || 'Failed to generate pet')
+      }
+
+      const result = response.data
+      console.log('Pet generation result:', result)
+
+      // Store temporary pet data (will save only on confirmation)
+      setTempPetData(result)
 
       // Backend returns images object with different states (idle, happy, focused, etc.)
       // Use the first available image
-      const imageUrl = result?.images?.idle || 
-                       result?.images?.happy || 
-                       result?.images?.focused ||
-                       result?.images?.tired ||
-                       result?.images?.excited ||
-                       Object.values(result?.images || {})[0]
+      const petData = result as Pet
+      const imageUrl = petData?.images?.idle || 
+                       petData?.images?.happy || 
+                       petData?.images?.focused ||
+                       petData?.images?.tired ||
+                       petData?.images?.excited ||
+                       (petData?.images ? Object.values(petData.images)[0] : undefined)
       
       console.log('Selected image URL:', imageUrl)
       
@@ -103,24 +119,58 @@ export default function CreatePet() {
       return
     }
 
+    if (!tempPetData) {
+      alert('No pet data found. Please generate an image first.')
+      return
+    }
+
     try {
-      // The pet should already be generated and stored by generatePet()
-      // We just need to generate behavior content if not already done
+      console.log('=== CREATEPET: Saving confirmed pet ===')
+      console.log('Pet name:', petName)
+      console.log('Temp pet data:', tempPetData)
       
-      // currentPet is already available from the component's usePet() hook at the top
-      if (currentPet) {
-        // Generate behavior content for the pet
-        try {
-          await generateBehaviorContent(currentPet.id)
-          console.log('Behavior content generated successfully')
-        } catch (error) {
-          console.warn('Failed to generate behavior content:', error)
-          // Continue without behavior content
-        }
+      // Create the final pet object with the user's chosen name
+      const newPet: Pet = {
+        ...tempPetData,
+        name: petName,
+        isActive: true, // Mark as active since we're creating it
+      }
+      
+      console.log('Final pet object to save:', newPet)
+      
+      // Save to IndexedDB
+      await indexedDBStorage.savePet(newPet)
+      console.log('Saved to IndexedDB')
+      
+      // Save to Chrome storage as current pet
+      await chrome.storage.local.set({ [CONFIG.STORAGE_KEYS.CURRENT_PET]: newPet })
+      console.log('Saved to chrome.storage.local')
+      
+      // Update the pet store
+      const { availablePets } = usePetStore.getState()
+      
+      // Deactivate all other pets
+      const updatedPets = availablePets.map(p => ({ ...p, isActive: false }))
+      
+      // Add new pet to the list
+      const allPets = [...updatedPets, newPet]
+      
+      usePetStore.setState({ 
+        currentPet: newPet,
+        availablePets: allPets 
+      })
+      console.log('Updated pet store, total pets:', allPets.length)
+      
+      // Generate behavior content for the pet
+      try {
+        await generateBehaviorContent(newPet.id)
+        console.log('Behavior content generated successfully')
+      } catch (error) {
+        console.warn('Failed to generate behavior content:', error)
+        // Continue without behavior content
       }
 
       // Navigate to instruction page
-      // The pet is already stored by the generatePet() function
       navigate('/instruction')
     } catch (error) {
       console.error('Failed to proceed:', error)
