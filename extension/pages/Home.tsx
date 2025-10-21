@@ -8,12 +8,12 @@ import { showPet } from '@/lib/utils/petControl'
 import { debugPetData } from '@/lib/utils/debugPet'
 
 type PetSlotData = 
-  | { id: string; name?: string; isCreate: false }
-  | { id: string; name: string; isCreate: true }
+  | { id: string; name?: string; imageUrl?: string; isCreate: false }
+  | { id: string; name: string; imageUrl?: string; isCreate: true }
 
 export default function Home() {
   const navigate = useNavigate()
-  const { currentPet, availablePets, selectPet } = usePet()
+  const { currentPet, availablePets, selectPet, deletePet } = usePet()
   const { user } = useAuth()
   const [currentPetIndex, setCurrentPetIndex] = useState(0)
 
@@ -35,7 +35,12 @@ export default function Home() {
     // Use custom name, or prompt as fallback, or generate a default name
     const petName = pet.name || pet.prompt?.split(' ').slice(0, 3).join(' ') || `Pet ${index + 1}`
     console.log('Home: Using display name:', petName)
-    return { id: pet.id, name: petName, isCreate: false }
+    
+    // Get pet image (prefer idle/happy state for display)
+    const imageUrl = pet.images?.idle || pet.images?.happy || pet.images?.focused || undefined
+    console.log('Home: Using image URL:', imageUrl)
+    
+    return { id: pet.id, name: petName, imageUrl, isCreate: false }
   }
 
   // Navigate pets
@@ -155,14 +160,20 @@ export default function Home() {
                   return (
                     <div
                       onClick={() => handlePetNavigation('prev')}
-                      className={`w-20 h-20 border-4 flex items-center justify-center text-center p-1 text-[8px] opacity-50 cursor-pointer ${
+                      className={`w-20 h-20 border-4 flex items-center justify-center text-center p-1 text-[8px] opacity-50 cursor-pointer overflow-hidden ${
                         pet.isCreate ? 'create-slot' : 'border-black bg-gray-100'
                       }`}
                     >
                       {pet.isCreate ? (
                         <span className="text-2xl font-bold text-gray-500">+</span>
+                      ) : pet.imageUrl ? (
+                        <img 
+                          src={pet.imageUrl} 
+                          alt={pet.name || 'Pet'} 
+                          className="w-full h-full object-cover pixel-art"
+                        />
                       ) : (
-                        <p className="font-pixel text-neon-pink leading-tight">Pet Icon</p>
+                        <p className="font-pixel text-neon-pink leading-tight text-[6px]">Loading...</p>
                       )}
                     </div>
                   )
@@ -173,7 +184,7 @@ export default function Home() {
                   const pet = getPetData(activeIndex)
                   return (
                     <div
-                      className={`w-28 h-28 border-4 flex flex-col items-center justify-center text-center p-2 text-[10px] ${
+                      className={`w-28 h-28 border-4 flex items-center justify-center text-center p-1 relative overflow-hidden ${
                         pet.isCreate ? 'create-slot' : 'border-black bg-gray-200'
                       }`}
                     >
@@ -181,10 +192,28 @@ export default function Home() {
                         <span className="plus-sign text-4xl">+</span>
                       ) : (
                         <>
-                          <p className="font-pixel text-neon-pink mb-1">Pet Icon</p>
-                          <p className="font-pixel text-black text-[8px] leading-tight">
-                            {pet.name || 'Unnamed'}
-                          </p>
+                          {pet.imageUrl ? (
+                            <img 
+                              src={pet.imageUrl} 
+                              alt={pet.name || 'Pet'} 
+                              className="w-full h-full object-cover pixel-art"
+                            />
+                          ) : (
+                            <p className="font-pixel text-neon-pink text-[6px]">Loading...</p>
+                          )}
+                          {/* Delete button */}
+                          <button
+                            onClick={async (e) => {
+                              e.stopPropagation()
+                              if (confirm(`Delete ${pet.name || 'this pet'}?`)) {
+                                await deletePet(pet.id)
+                              }
+                            }}
+                            className="absolute top-1 right-1 w-5 h-5 bg-red-600 text-white text-[12px] font-bold rounded hover:bg-red-700 flex items-center justify-center shadow-lg"
+                            title="Delete pet"
+                          >
+                            ×
+                          </button>
                         </>
                       )}
                     </div>
@@ -197,14 +226,20 @@ export default function Home() {
                   return (
                     <div
                       onClick={() => handlePetNavigation('next')}
-                      className={`w-20 h-20 border-4 flex items-center justify-center text-center p-1 text-[8px] opacity-50 cursor-pointer ${
+                      className={`w-20 h-20 border-4 flex items-center justify-center text-center p-1 text-[8px] opacity-50 cursor-pointer overflow-hidden ${
                         pet.isCreate ? 'create-slot' : 'border-black bg-gray-100'
                       }`}
                     >
                       {pet.isCreate ? (
                         <span className="text-2xl font-bold text-gray-500">+</span>
+                      ) : pet.imageUrl ? (
+                        <img 
+                          src={pet.imageUrl} 
+                          alt={pet.name || 'Pet'} 
+                          className="w-full h-full object-cover pixel-art"
+                        />
                       ) : (
-                        <p className="font-pixel text-neon-pink leading-tight">Pet Icon</p>
+                        <p className="font-pixel text-neon-pink leading-tight text-[6px]">Loading...</p>
                       )}
                     </div>
                   )
