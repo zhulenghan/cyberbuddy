@@ -274,6 +274,23 @@ export default function Home() {
                   // Select this pet and show it on the page
                   await selectPet(activePet.id)
                   await showPet()
+                  
+                  // Show refresh prompt if pet was changed
+                  if (currentPet?.id !== activePet.id) {
+                    const shouldRefresh = confirm(
+                      '宠物已切换！\n\n' +
+                      '点击"确定"刷新当前页面，桌宠将立即更新。\n' +
+                      '点击"取消"稍后手动刷新。'
+                    )
+                    if (shouldRefresh) {
+                      // Get active tab and reload it
+                      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+                        if (tabs[0]?.id) {
+                          chrome.tabs.reload(tabs[0].id)
+                        }
+                      })
+                    }
+                  }
                 }
               }}
               className="pixel-button w-full bg-red-600 font-pixel text-[10px] text-white hover:bg-red-500 py-2"
