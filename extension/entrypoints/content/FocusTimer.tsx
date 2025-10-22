@@ -34,13 +34,55 @@ export default function FocusTimer({ onClose, onStart, onTimeUpdate, petPosition
       const currentPetPosition = result.petPosition || petPosition
       console.log('Current pet position:', currentPetPosition)
       
-      // Create a notification dialog above pet
+      // Create a notification dialog with adaptive positioning
       const notification = document.createElement('div')
+      
+      // Calculate adaptive position
+      let topPosition, leftPosition, transformValue
+      
+      if (currentPetPosition) {
+        const notificationHeight = 200 // Approximate height of notification
+        const notificationWidth = 200 // Approximate width of notification
+        const margin = 20 // Margin from screen edge
+        
+        // Check if there's enough space above the pet
+        if (currentPetPosition.y - notificationHeight - margin > 0) {
+          // Position above pet
+          topPosition = `${currentPetPosition.y - notificationHeight - margin}px`
+        } else {
+          // Position below pet
+          topPosition = `${currentPetPosition.y + 120}px`
+        }
+        
+        // Check if there's enough space to center horizontally
+        const screenWidth = window.innerWidth
+        const leftCenter = currentPetPosition.x - notificationWidth / 2
+        
+        if (leftCenter >= margin && leftCenter + notificationWidth <= screenWidth - margin) {
+          // Center horizontally
+          leftPosition = `${leftCenter}px`
+          transformValue = 'none'
+        } else if (leftCenter < margin) {
+          // Align to left edge with margin
+          leftPosition = `${margin}px`
+          transformValue = 'none'
+        } else {
+          // Align to right edge with margin
+          leftPosition = `${screenWidth - notificationWidth - margin}px`
+          transformValue = 'none'
+        }
+      } else {
+        // Fallback to center of screen
+        topPosition = '50%'
+        leftPosition = '50%'
+        transformValue = 'translate(-50%, -50%)'
+      }
+      
       notification.style.cssText = `
         position: fixed;
-        top: ${currentPetPosition ? `${currentPetPosition.y - 120}px` : '50%'};
-        left: ${currentPetPosition ? `${currentPetPosition.x - 100}px` : '50%'};
-        transform: ${currentPetPosition ? 'none' : 'translate(-50%, -50%)'};
+        top: ${topPosition};
+        left: ${leftPosition};
+        transform: ${transformValue};
         background: rgba(0, 0, 0, 0.95);
         border: 4px solid #00ff00;
         border-radius: 12px;

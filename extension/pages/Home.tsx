@@ -277,21 +277,19 @@ export default function Home() {
                   await selectPet(activePet.id)
                   await showPet()
                   
-                  // Show refresh prompt if pet was changed
-                  if (currentPet?.id !== activePet.id) {
-                    const shouldRefresh = confirm(
-                      '宠物已切换！\n\n' +
-                      '点击"确定"刷新当前页面，桌宠将立即更新。\n' +
-                      '点击"取消"稍后手动刷新。'
-                    )
-                    if (shouldRefresh) {
-                      // Get active tab and reload it
-                      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-                        if (tabs[0]?.id) {
-                          chrome.tabs.reload(tabs[0].id)
-                        }
-                      })
-                    }
+                  // Show refresh prompt (always show for consistency)
+                  const shouldRefresh = confirm(
+                    '宠物已启动！\n\n' +
+                    '点击"确定"刷新当前页面，桌宠将立即显示。\n' +
+                    '点击"取消"稍后手动刷新。'
+                  )
+                  if (shouldRefresh) {
+                    // Get active tab and reload it
+                    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+                      if (tabs[0]?.id) {
+                        chrome.tabs.reload(tabs[0].id)
+                      }
+                    })
                   }
                 }
               }}

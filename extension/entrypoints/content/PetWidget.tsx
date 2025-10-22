@@ -33,12 +33,48 @@ export default function PetWidget() {
   const showCompletionNotification = () => {
     console.log('PetWidget: Showing completion notification')
     
-    // Get current pet position
+    // Create a notification dialog with adaptive positioning
     const notification = document.createElement('div')
+    
+    // Calculate adaptive position
+    let topPosition, leftPosition, transformValue
+    
+    const notificationHeight = 200 // Approximate height of notification
+    const notificationWidth = 200 // Approximate width of notification
+    const margin = 20 // Margin from screen edge
+    
+    // Check if there's enough space above the pet
+    if (position.y - notificationHeight - margin > 0) {
+      // Position above pet
+      topPosition = `${position.y - notificationHeight - margin}px`
+    } else {
+      // Position below pet
+      topPosition = `${position.y + 120}px`
+    }
+    
+    // Check if there's enough space to center horizontally
+    const screenWidth = window.innerWidth
+    const leftCenter = position.x - notificationWidth / 2
+    
+    if (leftCenter >= margin && leftCenter + notificationWidth <= screenWidth - margin) {
+      // Center horizontally
+      leftPosition = `${leftCenter}px`
+      transformValue = 'none'
+    } else if (leftCenter < margin) {
+      // Align to left edge with margin
+      leftPosition = `${margin}px`
+      transformValue = 'none'
+    } else {
+      // Align to right edge with margin
+      leftPosition = `${screenWidth - notificationWidth - margin}px`
+      transformValue = 'none'
+    }
+    
     notification.style.cssText = `
       position: fixed;
-      top: ${position.y - 120}px;
-      left: ${position.x - 100}px;
+      top: ${topPosition};
+      left: ${leftPosition};
+      transform: ${transformValue};
       background: rgba(0, 0, 0, 0.95);
       border: 4px solid #00ff00;
       border-radius: 12px;
@@ -500,20 +536,88 @@ export default function PetWidget() {
             justifyContent: 'center',
             transition: isDragging ? 'none' : 'transform 0.3s ease',
             animation: petState === 'entertainment' ? 'bounce 1s infinite' : 'none',
-            filter: 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3))',
+            // Match Home page pixel-border style
+            border: '4px solid #1a1a1a',
+            boxShadow: '8px 8px 0 #000000',
+            background: '#f0f0f0',
+            position: 'relative',
+            overflow: 'hidden',
           }}
         >
-          <img
-            src={petImage}
-            alt="Pet"
-            className="pixel-art"
+          {/* Pet image with pixel art frame */}
+          <div
             style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'contain',
-              pointerEvents: 'none',
+              width: 'calc(100% - 8px)',
+              height: 'calc(100% - 8px)',
+              overflow: 'hidden',
+              background: '#ffffff',
+              border: '2px solid #1a1a1a',
+              boxShadow: '2px 2px 0 #000000',
+              position: 'relative',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
             }}
-            draggable={false}
+          >
+            <img
+              src={petImage}
+              alt="Pet"
+              className="pixel-art"
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'contain',
+                pointerEvents: 'none',
+                imageRendering: 'pixelated',
+              }}
+              draggable={false}
+            />
+          </div>
+          
+          {/* Pixel art corner decorations */}
+          <div
+            style={{
+              position: 'absolute',
+              top: '2px',
+              left: '2px',
+              width: '8px',
+              height: '8px',
+              background: '#00ffff',
+              border: '1px solid #1a1a1a',
+            }}
+          />
+          <div
+            style={{
+              position: 'absolute',
+              top: '2px',
+              right: '2px',
+              width: '8px',
+              height: '8px',
+              background: '#ff00ff',
+              border: '1px solid #1a1a1a',
+            }}
+          />
+          <div
+            style={{
+              position: 'absolute',
+              bottom: '2px',
+              left: '2px',
+              width: '8px',
+              height: '8px',
+              background: '#ff00ff',
+              border: '1px solid #1a1a1a',
+            }}
+          />
+          <div
+            style={{
+              position: 'absolute',
+              bottom: '2px',
+              right: '2px',
+              width: '8px',
+              height: '8px',
+              background: '#00ffff',
+              border: '1px solid #1a1a1a',
+            }}
           />
         </div>
 
@@ -526,16 +630,23 @@ export default function PetWidget() {
               top: '50%',
               left: '140px',
               transform: 'translateY(-50%)',
-              background: '#1a1a1a',
-              border: '3px solid #00ffff',
-              borderRadius: '8px',
+              // Match Home page pixel-border style
+              background: '#f0f0f0',
+              border: '4px solid #1a1a1a',
+              boxShadow: '8px 8px 0 #000000',
               padding: '12px',
               minWidth: '180px',
-              boxShadow: '0 4px 16px rgba(0, 255, 255, 0.3)',
               zIndex: 10000,
             }}
           >
-            <div style={{ marginBottom: '8px', fontSize: '10px', color: '#00ffff', fontWeight: 'bold', textAlign: 'center' }}>
+            <div style={{ 
+              marginBottom: '8px', 
+              fontSize: '10px', 
+              color: '#1a1a1a', 
+              fontWeight: 'bold', 
+              textAlign: 'center',
+              fontFamily: "'Press Start 2P', monospace"
+            }}>
               {petName}'s Menu
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -543,19 +654,28 @@ export default function PetWidget() {
                 onClick={handleOpenTimer}
                 style={{
                   background: '#00ffff',
-                  border: '2px solid #000',
-                  color: '#000',
+                  border: '3px solid #1a1a1a',
+                  boxShadow: '4px 4px 0 #000000',
+                  color: '#1a1a1a',
                   padding: '10px',
                   cursor: 'pointer',
-                  fontSize: '11px',
+                  fontSize: '10px',
                   fontWeight: 'bold',
-                  borderRadius: '4px',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '8px',
-                  transition: 'transform 0.1s',
+                  transition: 'all 0.1s',
+                  fontFamily: "'Press Start 2P', monospace",
                 }}
                 onMouseDown={(e) => e.stopPropagation()}
+                onMouseUp={(e) => {
+                  e.currentTarget.style.boxShadow = '1px 1px 0 #000000'
+                  e.currentTarget.style.transform = 'translate(3px, 3px)'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.boxShadow = '4px 4px 0 #000000'
+                  e.currentTarget.style.transform = 'translate(0, 0)'
+                }}
               >
                 ⏰ {timerActive ? `计时中 ${timerTime || '25:00'}` : '专注计时器'}
               </button>
@@ -563,39 +683,57 @@ export default function PetWidget() {
                 onClick={handleOpenChat}
                 style={{
                   background: '#ff00ff',
-                  border: '2px solid #000',
-                  color: '#000',
+                  border: '3px solid #1a1a1a',
+                  boxShadow: '4px 4px 0 #000000',
+                  color: '#1a1a1a',
                   padding: '10px',
                   cursor: 'pointer',
-                  fontSize: '11px',
+                  fontSize: '10px',
                   fontWeight: 'bold',
-                  borderRadius: '4px',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '8px',
-                  transition: 'transform 0.1s',
+                  transition: 'all 0.1s',
+                  fontFamily: "'Press Start 2P', monospace",
                 }}
                 onMouseDown={(e) => e.stopPropagation()}
+                onMouseUp={(e) => {
+                  e.currentTarget.style.boxShadow = '1px 1px 0 #000000'
+                  e.currentTarget.style.transform = 'translate(3px, 3px)'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.boxShadow = '4px 4px 0 #000000'
+                  e.currentTarget.style.transform = 'translate(0, 0)'
+                }}
               >
                 💬 和宠物对话
               </button>
               <button
                 onClick={handleHidePet}
                 style={{
-                  background: '#555',
-                  border: '2px solid #000',
-                  color: '#fff',
+                  background: '#d0d0d0',
+                  border: '3px solid #1a1a1a',
+                  boxShadow: '4px 4px 0 #000000',
+                  color: '#1a1a1a',
                   padding: '10px',
                   cursor: 'pointer',
-                  fontSize: '11px',
+                  fontSize: '10px',
                   fontWeight: 'bold',
-                  borderRadius: '4px',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '8px',
-                  transition: 'transform 0.1s',
+                  transition: 'all 0.1s',
+                  fontFamily: "'Press Start 2P', monospace",
                 }}
                 onMouseDown={(e) => e.stopPropagation()}
+                onMouseUp={(e) => {
+                  e.currentTarget.style.boxShadow = '1px 1px 0 #000000'
+                  e.currentTarget.style.transform = 'translate(3px, 3px)'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.boxShadow = '4px 4px 0 #000000'
+                  e.currentTarget.style.transform = 'translate(0, 0)'
+                }}
               >
                 👻 收起宠物
               </button>
