@@ -95,6 +95,9 @@ async function handleGoogleAuth(event: APIGatewayProxyEvent): Promise<APIGateway
     const accessTokenDecoded = jwt.decode(accessToken) as JWTPayload
     const expiresIn = accessTokenDecoded.exp! - Math.floor(Date.now() / 1000)
 
+    // Get user data to include subscription and generationsRemaining
+    const userData = await getUserData(userId, userInfo.email)
+
     return {
       statusCode: 200,
       headers: corsHeaders(),
@@ -103,7 +106,10 @@ async function handleGoogleAuth(event: APIGatewayProxyEvent): Promise<APIGateway
           id: userId,
           email: userInfo.email,
           name: userInfo.name,
-          picture: userInfo.picture,
+          avatar: userInfo.avatar,
+          subscription: userData.subscription,
+          generationsRemaining: userData.generationsRemaining,
+          createdAt: userData.createdAt,
         },
         tokens: {
           accessToken,
@@ -227,7 +233,7 @@ function generateRefreshToken(userId: string, email: string): string {
 async function verifyGoogleToken(token: string): Promise<{
   email: string
   name: string
-  picture: string
+  avatar: string
 }> {
   try {
     // Call Google's userinfo endpoint
@@ -252,7 +258,7 @@ async function verifyGoogleToken(token: string): Promise<{
     return {
       email: data.email,
       name: data.name || `${data.given_name || ''} ${data.family_name || ''}`.trim(),
-      picture: data.picture || '',
+      avatar: data.picture || '',  // ⭐ Changed from picture to avatar
     }
   } catch (error) {
     console.error('Error verifying Google token:', error)
@@ -266,9 +272,9 @@ async function verifyGoogleToken(token: string): Promise<{
 async function getOrCreateUser(userInfo: {
   email: string
   name: string
-  picture: string
+  avatar: string
 }): Promise<string> {
-  const { email, name, picture } = userInfo
+  const { email, name, avatar } = userInfo
 
   // Check if user exists
   const result = await dynamoClient.send(
@@ -282,7 +288,7 @@ async function getOrCreateUser(userInfo: {
   )
 
   if (result.Item) {
-    // Update last login time
+    // Update last login time and avatar
     await dynamoClient.send(
       new UpdateCommand({
         TableName: TABLE_NAME,
@@ -290,14 +296,14 @@ async function getOrCreateUser(userInfo: {
           PK: `USER#${email}`,
           SK: 'PROFILE',
         },
-        UpdateExpression: 'SET lastLoginAt = :now, #name = :name, picture = :picture',
+        UpdateExpression: 'SET lastLoginAt = :now, #name = :name, avatar = :avatar, updatedAt = :now',
         ExpressionAttributeNames: {
           '#name': 'name',
         },
         ExpressionAttributeValues: {
           ':now': new Date().toISOString(),
           ':name': name,
-          ':picture': picture,
+          ':avatar': avatar,
         },
       })
     )
@@ -317,7 +323,9 @@ async function getOrCreateUser(userInfo: {
         userId,
         email,
         name,
-        picture,
+        avatar,  // ⭐ Changed from picture to avatar
+        subscription: 'free',  // ⭐ Added
+        generationsRemaining: 5,  // ⭐ Added (free tier: 5 generations per day)
         createdAt: now,
         updatedAt: now,
         lastLoginAt: now,
@@ -328,6 +336,35 @@ async function getOrCreateUser(userInfo: {
   )
 
   return userId
+}
+
+/**
+ * Get user data from DynamoDB
+ */
+async function getUserData(userId: string, email: string): Promise<{
+  subscription: string
+  generationsRemaining: number
+  createdAt: string
+}> {
+  const result = await dynamoClient.send(
+    new GetCommand({
+      TableName: TABLE_NAME,
+      Key: {
+        PK: `USER#${email}`,
+        SK: 'PROFILE',
+      },
+    })
+  )
+
+  if (!result.Item) {
+    throw new Error('User not found')
+  }
+
+  return {
+    subscription: result.Item.subscription || 'free',
+    generationsRemaining: result.Item.generationsRemaining ?? 5,
+    createdAt: result.Item.createdAt,
+  }
 }
 
 /**

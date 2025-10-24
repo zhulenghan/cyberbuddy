@@ -12,12 +12,14 @@ import type { Pet } from '@shared/types' // Import Pet type
 export default function CreatePet() {
   const navigate = useNavigate()
   const { currentPet, generatePet, generateBehaviorContent, isGenerating, error: petError } = usePet()
-  const { tokens } = useAuthStore()
+  const { tokens, user } = useAuthStore()
   const [petName, setPetName] = useState('')
   const [coreEntity, setCoreEntity] = useState('')
   const [uniqueTraits, setUniqueTraits] = useState('')
   const [generatedImage, setGeneratedImage] = useState<string | null>(null)
   const [isImageConfirmed, setIsImageConfirmed] = useState(false)
+  const [isConfirming, setIsConfirming] = useState(false) // ⭐ New: track confirming state
+  const [isGeneratingLocal, setIsGeneratingLocal] = useState(false) // ⭐ Track local generation state
   const [generationHistory, setGenerationHistory] = useState<string[]>([])
   const [currentHistoryIndex, setCurrentHistoryIndex] = useState(0)
   const [tempPetData, setTempPetData] = useState<any>(null) // Store temporary pet data before confirmation
@@ -58,9 +60,11 @@ export default function CreatePet() {
       return
     }
 
+    setIsGeneratingLocal(true) // ⭐ Set generating state
+
     try {
       const prompt = `${coreEntity} with ${uniqueTraits}`
-      
+
       // Call API directly without saving to store
       console.log('=== CREATEPET: Generating pet images (not saving yet) ===')
       const response = await apiClient.post('/pets', {
@@ -105,77 +109,88 @@ export default function CreatePet() {
       console.error('Failed to generate pet:', error)
       const message = error instanceof Error ? error.message : 'Unknown error'
       alert(`Failed to generate pet: ${message}`)
+    } finally {
+      setIsGeneratingLocal(false) // ⭐ Reset generating state
     }
   }
 
-  const handleConfirmImage = () => {
-    if (!generatedImage) return
-    setIsImageConfirmed(true)
-  }
-
-  const handleProceed = async () => {
-    if (!isImageConfirmed || !petName) {
-      alert('You must CONFIRM the static image and name your pet before proceeding!')
+  // ⭐ Modified: Now this calls the backend confirm API
+  const handleConfirmImage = async () => {
+    if (!generatedImage || !petName || !tempPetData || isImageConfirmed) {
       return
     }
 
-    if (!tempPetData) {
-      alert('No pet data found. Please generate an image first.')
-      return
-    }
+    setIsConfirming(true)
 
     try {
-      console.log('=== CREATEPET: Saving confirmed pet ===')
+      console.log('=== CREATEPET: Confirming pet with backend ===')
       console.log('Pet name:', petName)
-      console.log('Temp pet data:', tempPetData)
-      
-      // Create the final pet object with the user's chosen name
-      const newPet: Pet = {
-        ...tempPetData,
-        name: petName,
-        isActive: true, // Mark as active since we're creating it
+      console.log('Temp pet ID:', tempPetData.id)
+
+      // Call backend confirm API to generate all image variants
+      const confirmResponse = await apiClient.post(`/pets/${tempPetData.id}/confirm`, {
+        petName: petName
+      })
+
+      if (!confirmResponse.success || !confirmResponse.data) {
+        throw new Error(confirmResponse.error?.message || 'Failed to confirm pet')
       }
-      
+
+      console.log('Pet confirmed, backend returned:', confirmResponse.data)
+
+      // Use the confirmed pet data from backend (now has all 5 images + behaviorContent)
+      const newPet: Pet = {
+        ...confirmResponse.data,
+        isActive: true,
+      }
+
       console.log('Final pet object to save:', newPet)
-      
+
       // Save to IndexedDB
       await indexedDBStorage.savePet(newPet)
       console.log('Saved to IndexedDB')
-      
+
       // Save to Chrome storage as current pet
       await chrome.storage.local.set({ [CONFIG.STORAGE_KEYS.CURRENT_PET]: newPet })
       console.log('Saved to chrome.storage.local')
-      
+
       // Update the pet store
       const { availablePets } = usePetStore.getState()
-      
+
       // Deactivate all other pets
       const updatedPets = availablePets.map(p => ({ ...p, isActive: false }))
-      
+
       // Add new pet to the list
       const allPets = [...updatedPets, newPet]
-      
-      usePetStore.setState({ 
+
+      usePetStore.setState({
         currentPet: newPet,
-        availablePets: allPets 
+        availablePets: allPets
       })
       console.log('Updated pet store, total pets:', allPets.length)
-      
-      // Generate behavior content for the pet
-      try {
-        await generateBehaviorContent(newPet.id)
-        console.log('Behavior content generated successfully')
-      } catch (error) {
-        console.warn('Failed to generate behavior content:', error)
-        // Continue without behavior content
-      }
 
-      // Navigate to instruction page
-      navigate('/instruction')
+      // Mark as confirmed (prevent double-click)
+      setIsImageConfirmed(true)
+      alert('Pet confirmed successfully! You can now proceed to the next step.')
     } catch (error) {
-      console.error('Failed to proceed:', error)
-      alert('Failed to proceed. Please try again.')
+      console.error('Failed to confirm pet:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      alert(`Failed to confirm pet: ${errorMessage}. Please try again.`)
+    } finally {
+      setIsConfirming(false)
     }
+  }
+
+  // ⭐ Modified: Now this only navigates to the next page
+  const handleProceed = () => {
+    if (!isImageConfirmed) {
+      alert('You must CONFIRM your pet before proceeding!')
+      return
+    }
+
+    // Simply navigate to instruction page
+    console.log('=== CREATEPET: Proceeding to instruction page ===')
+    navigate('/instruction')
   }
 
   const handleInputChange = () => {
@@ -185,28 +200,74 @@ export default function CreatePet() {
     }
   }
 
-  const handleRandomEntity = () => {
-    const entities = [
-      'A sentient glitch sprite with butterfly wings',
-      'A biomechanical teddy bear with a glowing core',
-      'A vaporwave-inspired marble fox with holographic eyes',
-      'A cute, floating cloud made of sparkling data packets',
-      'A giant but friendly pixelated serpent',
-    ]
-    setCoreEntity(entities[Math.floor(Math.random() * entities.length)])
-    handleInputChange()
+  const handleRandomEntity = async () => {
+    try {
+      // Call backend API to get Gemini-generated random pet idea
+      const response = await apiClient.get('/pets/random-prompt')
+
+      if (response.success && response.data) {
+        setCoreEntity(response.data.coreEntity)
+        handleInputChange()
+      } else {
+        // Fallback to hardcoded option
+        const fallbackEntities = [
+          'A sentient glitch sprite with butterfly wings',
+          'A biomechanical teddy bear with a glowing core',
+          'A vaporwave-inspired marble fox with holographic eyes',
+          'A cute, floating cloud made of sparkling data packets',
+          'A giant but friendly pixelated serpent',
+        ]
+        setCoreEntity(fallbackEntities[Math.floor(Math.random() * fallbackEntities.length)])
+        handleInputChange()
+      }
+    } catch (error) {
+      console.error('Failed to get random entity:', error)
+      // Fallback to hardcoded option
+      const fallbackEntities = [
+        'A sentient glitch sprite with butterfly wings',
+        'A biomechanical teddy bear with a glowing core',
+        'A vaporwave-inspired marble fox with holographic eyes',
+        'A cute, floating cloud made of sparkling data packets',
+        'A giant but friendly pixelated serpent',
+      ]
+      setCoreEntity(fallbackEntities[Math.floor(Math.random() * fallbackEntities.length)])
+      handleInputChange()
+    }
   }
 
-  const handleRandomTraits = () => {
-    const traits = [
-      'covered in fuzzy rainbow fur and wearing a crown',
-      'has three rotating eyes and emits static noise',
-      'made of liquid mercury and constantly dissolving',
-      'wearing futuristic combat armor and holding a tiny sword',
-      'made of pure neon light, translucent and geometric',
-    ]
-    setUniqueTraits(traits[Math.floor(Math.random() * traits.length)])
-    handleInputChange()
+  const handleRandomTraits = async () => {
+    try {
+      // Call backend API to get Gemini-generated random pet idea
+      const response = await apiClient.get('/pets/random-prompt')
+
+      if (response.success && response.data) {
+        setUniqueTraits(response.data.traits)
+        handleInputChange()
+      } else {
+        // Fallback to hardcoded option
+        const fallbackTraits = [
+          'covered in fuzzy rainbow fur and wearing a crown',
+          'has three rotating eyes and emits static noise',
+          'made of liquid mercury and constantly dissolving',
+          'wearing futuristic combat armor and holding a tiny sword',
+          'made of pure neon light, translucent and geometric',
+        ]
+        setUniqueTraits(fallbackTraits[Math.floor(Math.random() * fallbackTraits.length)])
+        handleInputChange()
+      }
+    } catch (error) {
+      console.error('Failed to get random traits:', error)
+      // Fallback to hardcoded option
+      const fallbackTraits = [
+        'covered in fuzzy rainbow fur and wearing a crown',
+        'has three rotating eyes and emits static noise',
+        'made of liquid mercury and constantly dissolving',
+        'wearing futuristic combat armor and holding a tiny sword',
+        'made of pure neon light, translucent and geometric',
+      ]
+      setUniqueTraits(fallbackTraits[Math.floor(Math.random() * fallbackTraits.length)])
+      handleInputChange()
+    }
   }
 
   const handleRandomName = () => {
@@ -365,10 +426,10 @@ export default function CreatePet() {
           {/* Generate Button */}
           <button
             onClick={handleGenerate}
-            disabled={isGenerating || !coreEntity || !uniqueTraits}
+            disabled={isGeneratingLocal || !coreEntity || !uniqueTraits || (user?.generationsRemaining ?? 0) <= 0}
             className="pixel-button w-full bg-blue-500 font-pixel text-xs text-white hover:bg-blue-400 py-2"
           >
-            {isGenerating ? 'GENERATING...' : 'Click here to generate your cyper buddy!'}
+            {isGeneratingLocal ? 'GENERATING...' : (user?.generationsRemaining ?? 0) <= 0 ? 'GENERATION LIMIT REACHED' : 'Click here to generate your cyper buddy!'}
           </button>
 
           {/* Preview Grid */}
@@ -418,26 +479,30 @@ export default function CreatePet() {
 
               <div className="flex-grow flex items-center justify-center px-2">
                 <p className="text-[10px] font-mono text-gray-700 text-center">
-                  {generatedImage && !isImageConfirmed
-                    ? 'Preview generated. Click CONFIRM to lock.'
+                  {isConfirming
+                    ? 'Generating variants...'
+                    : generatedImage && !isImageConfirmed && !petName
+                    ? 'Name your pet first, then CONFIRM.'
+                    : generatedImage && !isImageConfirmed && petName
+                    ? 'Ready! Click CONFIRM to save.'
                     : isImageConfirmed
-                    ? 'CONFIRMED!'
+                    ? 'CONFIRMED! Ready to proceed.'
                     : 'Generated image will appear here.'}
                 </p>
               </div>
 
               <button
                 onClick={handleConfirmImage}
-                disabled={!generatedImage || isImageConfirmed}
+                disabled={!generatedImage || !petName || isConfirming || isImageConfirmed}
                 className={`pixel-button w-full font-pixel text-[10px] mt-2 py-2 ${
                   isImageConfirmed
                     ? 'bg-gray-500 text-white'
-                    : generatedImage
+                    : generatedImage && petName && !isConfirming
                     ? 'bg-green-500 hover:bg-green-400 text-white'
                     : 'bg-gray-300 text-black'
                 }`}
               >
-                {isImageConfirmed ? 'CONFIRMED!' : 'CONFIRM'}
+                {isConfirming ? 'CONFIRMING...' : isImageConfirmed ? 'CONFIRMED!' : 'CONFIRM'}
               </button>
           </div>
         </div>
@@ -465,9 +530,9 @@ export default function CreatePet() {
           {/* Proceed Button */}
           <button
             onClick={handleProceed}
-            disabled={!isImageConfirmed || !petName}
+            disabled={!isImageConfirmed}
             className={`pixel-button w-full font-pixel text-xs py-2.5 ${
-              isImageConfirmed && petName
+              isImageConfirmed
                 ? 'bg-green-500 hover:bg-green-400 text-white'
                 : 'bg-gray-400 text-black'
             }`}

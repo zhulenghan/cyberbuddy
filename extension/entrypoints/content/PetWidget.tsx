@@ -172,6 +172,25 @@ export default function PetWidget() {
     return () => clearInterval(interval)
   }, [position]) // Include position so notification uses current position
 
+  // Load saved position from storage on mount
+  useEffect(() => {
+    const loadPosition = async () => {
+      try {
+        const result = await chrome.storage.local.get('petPosition')
+        if (result.petPosition) {
+          console.log('PetWidget: Restored position from storage:', result.petPosition)
+          setPosition(result.petPosition)
+        }
+      } catch (error) {
+        console.error('PetWidget: Failed to load position from storage:', error)
+      }
+    }
+
+    loadPosition()
+  }, []) // Run only once on mount
+
+  // NOTE: Position change listener is combined with other storage listeners below (around line 338)
+
   // Listen for visibility toggle messages
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
@@ -211,23 +230,15 @@ export default function PetWidget() {
       if (currentPet && currentPet.images) {
         const pet = currentPet
         
-        // Map frontend states to backend states
-        const stateMapping: Record<PetState, string> = {
-          idle: 'social',
-          happy: 'entertainment', 
-          focused: 'focused',
-          tired: 'shopping',
-          excited: 'entertainment'
-        }
-        
-        const backendState = stateMapping[petState] || 'social'
-        
-        if (pet.images[backendState]) {
-          console.log('Updating pet image for new state', petState, '->', backendState, ':', pet.images[backendState])
-          setPetImage(pet.images[backendState])
-        } else if (pet.images.social) {
-          console.log('Using social image as fallback for state', petState)
-          setPetImage(pet.images.social)
+        // ⭐ Fixed: Direct mapping - backend now uses same pet state names
+        const imageKey = petState as string
+
+        if (pet.images[imageKey]) {
+          console.log('Updating pet image for state', petState, ':', pet.images[imageKey])
+          setPetImage(pet.images[imageKey])
+        } else if (pet.images.idle) {
+          console.log('Using idle image as fallback for state', petState)
+          setPetImage(pet.images.idle)
         }
       }
     })
@@ -255,24 +266,16 @@ export default function PetWidget() {
           const validation = validatePetImages(pet)
           console.log('Pet validation:', validation)
 
-          // Map frontend states to backend states
-          const stateMapping: Record<PetState, string> = {
-            idle: 'social',
-            happy: 'entertainment',
-            focused: 'focused',
-            tired: 'shopping',
-            excited: 'entertainment'
-          }
-
-          const backendState = stateMapping[petState] || 'social'
+          // ⭐ Fixed: Direct mapping - backend now uses same pet state names
+          const imageKey = petState as string
 
           // Load pet image based on current state
-          if (pet.images && pet.images[backendState]) {
-            console.log('Setting pet image for state', petState, '->', backendState, ':', pet.images[backendState])
-            setPetImage(pet.images[backendState])
-          } else if (pet.images && pet.images.social) {
-            console.log('Using social image as fallback:', pet.images.social)
-            setPetImage(pet.images.social)
+          if (pet.images && pet.images[imageKey]) {
+            console.log('Setting pet image for state', petState, ':', pet.images[imageKey])
+            setPetImage(pet.images[imageKey])
+          } else if (pet.images && pet.images.idle) {
+            console.log('Using idle image as fallback:', pet.images.idle)
+            setPetImage(pet.images.idle)
           } else {
             console.log('No pet images found, using placeholder')
             setPetImage('https://via.placeholder.com/128/00D9FF/ffffff?text=Pet')
@@ -311,57 +314,91 @@ export default function PetWidget() {
     // Load initial data
     loadPetData()
 
-    // Listen for storage changes
-    const handleStorageChange = (changes: { [key: string]: chrome.storage.StorageChange }) => {
+    // Listen for storage changes (unified listener for all storage changes)
+    const handleStorageChange = (
+      changes: { [key: string]: chrome.storage.StorageChange },
+      areaName: string
+    ) => {
+      console.log('🔔 PetWidget: Storage change detected!', {
+        areaName,
+        changedKeys: Object.keys(changes),
+        petPositionChange: changes.petPosition ? {
+          oldValue: changes.petPosition.oldValue,
+          newValue: changes.petPosition.newValue
+        } : null
+      })
+
+      // Only handle local storage changes
+      if (areaName !== 'local') {
+        console.log('⚠️ PetWidget: Ignoring non-local storage change:', areaName)
+        return
+      }
+
+      // Handle pet position changes (real-time sync across tabs)
+      if (changes.petPosition) {
+        const newPosition = changes.petPosition.newValue
+        if (newPosition) {
+          // Only update if position actually changed (avoid unnecessary re-renders)
+          setPosition((currentPosition) => {
+            if (currentPosition.x !== newPosition.x || currentPosition.y !== newPosition.y) {
+              console.log('PetWidget: Position updated from storage:', newPosition)
+              return newPosition
+            }
+            return currentPosition
+          })
+        }
+      }
+
+      // Handle pet data changes
       if (changes[CONFIG.STORAGE_KEYS.CURRENT_PET]) {
         const pet = changes[CONFIG.STORAGE_KEYS.CURRENT_PET].newValue
         console.log('Pet data changed:', pet)
         if (pet) {
           setPetName(pet.name || pet.prompt || 'Buddy')
-          // Map frontend states to backend states
-          const stateMapping: Record<PetState, string> = {
-            idle: 'social',
-            happy: 'entertainment', 
-            focused: 'focused',
-            tired: 'shopping',
-            excited: 'entertainment'
-          }
-          
-          const backendState = stateMapping[petState] || 'social'
-          
+          // ⭐ Fixed: Direct mapping - backend now uses same pet state names
+          const imageKey = petState as string
+
           // Update image based on current state
-          if (pet.images && pet.images[backendState]) {
-            console.log('Updating pet image for state', petState, '->', backendState, ':', pet.images[backendState])
-            setPetImage(pet.images[backendState])
-          } else if (pet.images && pet.images.social) {
-            console.log('Using social image as fallback:', pet.images.social)
-            setPetImage(pet.images.social)
+          if (pet.images && pet.images[imageKey]) {
+            console.log('Updating pet image for state', petState, ':', pet.images[imageKey])
+            setPetImage(pet.images[imageKey])
+          } else if (pet.images && pet.images.idle) {
+            console.log('Using idle image as fallback:', pet.images.idle)
+            setPetImage(pet.images.idle)
           }
         }
       }
+
+      // Handle visibility changes
       if (changes.petVisible) {
         setIsVisible(changes.petVisible.newValue)
       }
+
+      // Handle timer active state changes
       if (changes.timerActive) {
         setTimerActive(changes.timerActive.newValue)
       }
-        if (changes.timerTime) {
-          const newTime = changes.timerTime.newValue
-          console.log('PetWidget: Timer time changed:', newTime)
-          // Validate timer time format
-          if (typeof newTime === 'string' && newTime.match(/^\d{2}:\d{2}$/)) {
-            setTimerTime(newTime)
-          } else {
-            console.warn('PetWidget: Invalid timer time format in storage change:', newTime)
-          }
+
+      // Handle timer time changes
+      if (changes.timerTime) {
+        const newTime = changes.timerTime.newValue
+        console.log('PetWidget: Timer time changed:', newTime)
+        // Validate timer time format
+        if (typeof newTime === 'string' && newTime.match(/^\d{2}:\d{2}$/)) {
+          setTimerTime(newTime)
+        } else {
+          console.warn('PetWidget: Invalid timer time format in storage change:', newTime)
         }
+      }
     }
 
     chrome.storage.onChanged.addListener(handleStorageChange)
+    console.log('✅ PetWidget: Storage change listener registered')
 
     // Cleanup
     return () => {
       chrome.storage.onChanged.removeListener(handleStorageChange)
+      console.log('🔴 PetWidget: Storage change listener removed')
     }
   }, [])
 
@@ -403,9 +440,10 @@ export default function PetWidget() {
   // Save position to storage when it changes (debounced)
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      chrome.storage.local.set({ petPosition: position })
-      console.log('PetWidget: Position saved to storage:', position)
-    }, 100) // Debounce to avoid too many writes
+      chrome.storage.local.set({ petPosition: position }, () => {
+        console.log('PetWidget: ✅ Position saved to storage:', position)
+      })
+    }, 50) // Reduced debounce for faster sync
 
     return () => clearTimeout(timeoutId)
   }, [position])

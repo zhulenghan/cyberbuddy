@@ -69,6 +69,14 @@ export class CyberBuddyStack extends cdk.Stack {
       encryption: s3.BucketEncryption.S3_MANAGED,
       removalPolicy: config.removalPolicy,
       autoDeleteObjects: config.removalPolicy === cdk.RemovalPolicy.DESTROY,
+      lifecycleRules: [
+        {
+          id: 'DeleteTemporaryPets',
+          prefix: 'tmp/',
+          expiration: cdk.Duration.days(7),
+          enabled: true,
+        },
+      ],
     })
 
     // =====================
@@ -168,9 +176,17 @@ export class CyberBuddyStack extends cdk.Stack {
     pets.addMethod('GET', new apigateway.LambdaIntegration(petsFunction))
     pets.addMethod('POST', new apigateway.LambdaIntegration(petsFunction))
 
+    // Random prompt endpoint
+    const randomPrompt = pets.addResource('random-prompt')
+    randomPrompt.addMethod('GET', new apigateway.LambdaIntegration(petsFunction))
+
     const petById = pets.addResource('{petId}')
     petById.addMethod('GET', new apigateway.LambdaIntegration(petsFunction))
     petById.addMethod('DELETE', new apigateway.LambdaIntegration(petsFunction))
+
+    // Confirm endpoint (convert temporary pet to permanent)
+    const petConfirm = petById.addResource('confirm')
+    petConfirm.addMethod('POST', new apigateway.LambdaIntegration(petsFunction))
 
     const activities = api.root.addResource('activities')
     activities.addMethod('POST', new apigateway.LambdaIntegration(activitiesFunction))
