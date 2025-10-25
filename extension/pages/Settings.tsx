@@ -1,11 +1,12 @@
 import { useNavigate } from 'react-router-dom'
-import { Footer } from '@/components/layout/Footer'
+import { PixelFooter } from '@/components/layout/PixelFooter'
 import { useAuth } from '@/hooks/useAuth'
 import { ArrowLeftIcon } from 'raster-react'
+import { generateSpaceId, getUserInitials } from '@/lib/utils/userUtils'
 
 export default function Settings() {
   const navigate = useNavigate()
-  const { logout } = useAuth()
+  const { user, logout } = useAuth()
 
   const handleLogout = async () => {
     try {
@@ -43,13 +44,18 @@ export default function Settings() {
       onClick: () => alert('Language settings coming soon!'),
     },
     {
+      label: 'Guides',
+      onClick: () => alert('Share function coming soon!'),
+    },
+    {
       label: 'VIEW MY PLAN',
       onClick: () => alert('Plan view coming soon!'),
     },
     {
-      label: 'RECOMMEND EXTENSION',
+      label: 'Share our EXTENSION',
       onClick: () => alert('Share function coming soon!'),
     },
+    
     {
       label: 'CLEAR ALL DATA',
       onClick: handleClearData,
@@ -63,7 +69,12 @@ export default function Settings() {
   ]
 
   return (
-    <div className="h-[600px] w-[400px] bg-gray-800 flex items-center justify-center p-3 overflow-hidden">
+    <div className="h-[600px] w-[450px] bg-gray-800 flex relative overflow-hidden">
+      {/* Left Sidebar Navigation */}
+      <PixelFooter />
+      
+      {/* Main Content - properly spaced from sidebar */}
+      <div className="ml-16 flex-1 relative z-10 h-full">
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
         .font-pixel { font-family: 'Press Start 2P', cursive; }
@@ -77,7 +88,7 @@ export default function Settings() {
         .dark-bg { background-color: #1a1a1a; }
       `}</style>
 
-      <div className="pixel-border w-full h-full p-4 overflow-y-auto">
+        <div className="pixel-border w-full h-full p-4 overflow-y-auto">
         {/* Window Header */}
         <div className="dark-bg pixel-border border-2 px-4 py-2 mb-4 flex justify-between items-center relative">
             <button
@@ -96,7 +107,8 @@ export default function Settings() {
         </div>
 
         {/* Main Content */}
-        <div className="space-y-4">
+        <div className="space-y-6 pb-4">
+          
           {/* Settings Icon */}
           <div className="flex justify-center mb-4">
             <div className="w-20 h-20 border-4 border-black bg-gray-300 flex items-center justify-center">
@@ -109,6 +121,36 @@ export default function Settings() {
 
           {/* Title */}
           <h2 className="font-pixel text-base text-center text-neon-pink mb-4">SETTINGS</h2>
+
+          {/* User Profile Section */}
+          {user && (
+            <div className="pixel-border bg-white p-3 space-y-2">
+              <h3 className="font-pixel text-[9px] text-center text-neon-pink mb-2">USER PROFILE</h3>
+              <div className="flex items-center space-x-3">
+                <div className="w-12 h-12 border-2 border-black bg-gray-200 rounded-full flex items-center justify-center overflow-hidden">
+                  {user.avatar ? (
+                    <img src={user.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="font-pixel text-xs text-black">
+                      {getUserInitials(user.name)}
+                    </span>
+                  )}
+                </div>
+                <div className="flex-1 space-y-1">
+                  <div className="text-[8px] font-mono text-black">
+                    <p><strong>Name:</strong> {user.name}</p>
+                    <p><strong>Email:</strong> {user.email}</p>
+                    <p><strong>Space ID:</strong> <span className="text-neon-pink font-bold" title="Unique identifier for your CyberBuddy account">
+                      {generateSpaceId(user.id, user.email)}
+                    </span></p>
+                    <p><strong>Account:</strong> {user.subscription.toUpperCase()}</p>
+                    <p><strong>Generations:</strong> {user.generationsRemaining}</p>
+                    <p><strong>Joined:</strong> {new Date(user.createdAt).toLocaleDateString()}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Menu Items */}
           <div className="space-y-2 px-2">
@@ -128,12 +170,11 @@ export default function Settings() {
           </div>
 
           {/* Footer / Guidance */}
-          <div className="text-center text-[8px] font-mono text-gray-400 mt-4">
-            Having question? &gt;Go to <span className="text-neon-cyan underline cursor-pointer">guide</span>
+          <div className="text-center text-[8px] font-mono text-gray-400 mt-6">
+            Having question? {'>'} Go to <span className="text-neon-cyan underline cursor-pointer" onClick={() => navigate('/guide')}>guide</span>
           </div>
 
-          {/* Footer Navigation Icons */}
-          <Footer />
+        </div>
         </div>
       </div>
     </div>

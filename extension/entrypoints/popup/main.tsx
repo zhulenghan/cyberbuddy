@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import ReactDOM from 'react-dom/client'
 import { MemoryRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
@@ -6,6 +6,7 @@ import { Toaster } from '@/components/ui/toaster'
 import { LoadingPage } from '@/components/ui/loading'
 import { useAuth } from '@/hooks/useAuth'
 import { useAuthStore } from '@/lib/store'
+import { CONFIG } from '@/lib/config'
 
 // Pages
 import Welcome from '@/pages/Welcome'
@@ -14,6 +15,7 @@ import CreatePet from '@/pages/CreatePet'
 import Instruction from '@/pages/Instruction'
 import FocusReport from '@/pages/FocusReport'
 import Settings from '@/pages/Settings'
+import Guide from '@/pages/Guide'
 
 import '@/assets/styles/globals.css'
 import './style.css'
@@ -37,25 +39,73 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>
 }
 
+function AuthRedirect() {
+  const { isAuthenticated, isLoading } = useAuth()
+  const [petCheckComplete, setPetCheckComplete] = useState(false)
+  const [redirectPath, setRedirectPath] = useState<string | null>(null)
+  
+  useEffect(() => {
+    if (isAuthenticated && !isLoading) {
+      console.log('AuthRedirect: User authenticated, checking for pet...')
+      
+      // Check if user has a pet
+      chrome.storage.local.get([CONFIG.STORAGE_KEYS.CURRENT_PET]).then((result) => {
+        const currentPet = result[CONFIG.STORAGE_KEYS.CURRENT_PET]
+        console.log('AuthRedirect: Current pet check:', currentPet)
+        
+        if (currentPet) {
+          console.log('AuthRedirect: Pet found, redirecting to home')
+          setRedirectPath('/home')
+        } else {
+          console.log('AuthRedirect: No pet found, redirecting to create-pet')
+          setRedirectPath('/create-pet')
+        }
+        setPetCheckComplete(true)
+      }).catch((error) => {
+        console.error('AuthRedirect: Error checking for pet:', error)
+        setRedirectPath('/create-pet')
+        setPetCheckComplete(true)
+      })
+    } else if (!isAuthenticated && !isLoading) {
+      // Not authenticated, show welcome page
+      setPetCheckComplete(true)
+    }
+  }, [isAuthenticated, isLoading])
+  
+  // If authenticated and we have determined the redirect path
+  if (isAuthenticated && redirectPath && petCheckComplete) {
+    return <Navigate to={redirectPath} replace />
+  }
+  
+  // If not authenticated and check is complete
+  if (!isAuthenticated && petCheckComplete) {
+    return <Welcome />
+  }
+  
+  // Still checking authentication or pet status
+  return <LoadingPage text="Loading..." />
+}
+
 function App() {
   const { isLoading, loadSession } = useAuthStore()
 
   // Load session only once on app mount
   useEffect(() => {
+    console.log('Main App: Loading session on startup...')
     loadSession()
-  }, [])
+  }, [loadSession])
 
   // Show loading page during initial authentication check
   if (isLoading) {
-    return <LoadingPage text="Loading..." />
+    return <LoadingPage text="Checking authentication..." />
   }
 
   return (
     <QueryClientProvider client={queryClient}>
       <MemoryRouter>
         <Routes>
-          {/* Public route */}
-          <Route path="/" element={<Welcome />} />
+          {/* Public route - with automatic redirect if authenticated */}
+          <Route path="/" element={<AuthRedirect />} />
 
           {/* Protected routes */}
           <Route
@@ -95,6 +145,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <Settings />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/guide"
+            element={
+              <ProtectedRoute>
+                <Guide />
               </ProtectedRoute>
             }
           />

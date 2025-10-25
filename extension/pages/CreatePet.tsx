@@ -7,7 +7,7 @@ import { useAuthStore } from '@/lib/store/authStore'
 import { ArrowLeftIcon } from 'raster-react'
 import { apiClient } from '@/lib/api' // Import API client
 import { indexedDBStorage } from '@/lib/storage' // Import indexedDBStorage
-import type { Pet } from '@shared/types' // Import Pet type
+import type { Pet } from '@/lib/types' // Import Pet type
 
 export default function CreatePet() {
   const navigate = useNavigate()
@@ -61,19 +61,31 @@ export default function CreatePet() {
     try {
       const prompt = `${coreEntity} with ${uniqueTraits}`
       
-      // Call API directly without saving to store
-      console.log('=== CREATEPET: Generating pet images (not saving yet) ===')
-      const response = await apiClient.post('/pets', {
+      // Mock pet generation for development (replace with real API when available)
+      console.log('=== CREATEPET: Generating pet images (mock implementation) ===')
+      
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      
+      // Create mock pet data
+      const mockPetData: Pet = {
+        id: `pet_${Date.now()}`,
+        name: petName || 'Generated Pet',
         prompt,
+        images: {
+          idle: 'https://via.placeholder.com/128x128/4F46E5/FFFFFF?text=🤖',
+          happy: 'https://via.placeholder.com/128x128/10B981/FFFFFF?text=😊',
+          focused: 'https://via.placeholder.com/128x128/F59E0B/FFFFFF?text=🎯',
+          tired: 'https://via.placeholder.com/128x128/6B7280/FFFFFF?text=😴',
+          excited: 'https://via.placeholder.com/128x128/EF4444/FFFFFF?text=🎉'
+        },
         style: 'pixel',
-      })
-
-      if (!response.success || !response.data) {
-        throw new Error(response.error?.message || 'Failed to generate pet')
+        isActive: true,
+        createdAt: new Date().toISOString(),
       }
-
-      const result = response.data
-      console.log('Pet generation result:', result)
+      
+      const result = mockPetData
+      console.log('Pet generation result (mock):', result)
 
       // Store temporary pet data (will save only on confirmation)
       setTempPetData(result)
@@ -240,7 +252,7 @@ export default function CreatePet() {
   const previewState = getPreviewState()
 
   return (
-    <div className="h-[600px] w-[400px] bg-gray-800 flex items-center justify-center p-3 overflow-hidden">
+    <div className="h-[600px] w-[450px] bg-gray-800 flex items-center justify-center p-3 overflow-hidden">
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
         
@@ -443,7 +455,7 @@ export default function CreatePet() {
         </div>
 
           {/* Pet Naming Input */}
-          <section className="p-3 pixel-border bg-white" style={{ marginTop: '-90px' }}>
+          <section className="p-3 pixel-border bg-white" style={{ marginTop: '-70px' }}>
             <label className="font-pixel text-[10px] mb-1 block">What would you like your pet to be called?</label>
             <div className="flex gap-2">
               <input

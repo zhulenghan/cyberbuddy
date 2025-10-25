@@ -57,7 +57,11 @@ export function LoadingPage({ text = 'Loading...' }: { text?: string }) {
         {/* Logo */}
         <div className="flex justify-center mb-6">
           <div className="w-24 h-24 border-4 border-black bg-gray-300 flex items-center justify-center">
-            <span className="text-5xl">🤖</span>
+            <img 
+              src="/icon/96.png" 
+              alt="Cyber Buddy" 
+              className="w-16 h-16 object-contain"
+            />
           </div>
         </div>
 

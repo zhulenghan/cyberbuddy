@@ -39,7 +39,10 @@ function App() {
     return (
       <div className="popup-container">
         <div className="welcome">
-          <h1 className="text-2xl font-bold mb-4">🤖 Cyber Buddy</h1>
+          <h1 className="text-2xl font-bold mb-4 flex items-center justify-center gap-2">
+            <img src="/icon/32.png" alt="Cyber Buddy" className="w-8 h-8 object-contain" />
+            Cyber Buddy
+          </h1>
           <p className="mb-4">Your AI-powered desktop companion</p>
           {error && (
             <div className="error-message mb-4 text-red-500 text-sm">

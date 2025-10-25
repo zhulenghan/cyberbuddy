@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Footer } from '@/components/layout/Footer'
+import { PixelFooter } from '@/components/layout/PixelFooter'
 import { usePet } from '@/hooks/usePet'
 import { useAuth } from '@/hooks/useAuth'
 import { ArrowLeftIcon } from 'raster-react'
 import { showPet } from '@/lib/utils/petControl'
 import { debugPetData } from '@/lib/utils/debugPet'
+import { generateSpaceId, getUserInitials } from '@/lib/utils/userUtils'
 
 type PetSlotData = 
   | { id: string; name?: string; imageUrl?: string; isCreate: false }
@@ -62,7 +63,12 @@ export default function Home() {
   const activePet = getPetData(activeIndex)
 
   return (
-    <div className="h-[600px] w-[400px] bg-gray-800 flex items-center justify-center p-3 overflow-hidden">
+    <div className="h-[600px] w-[450px] bg-gray-800 flex relative overflow-hidden">
+      {/* Left Sidebar Navigation */}
+      <PixelFooter />
+      
+      {/* Main Content - properly spaced from sidebar */}
+      <div className="ml-16 flex-1 relative z-10 h-full">
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
         .font-pixel { font-family: 'Press Start 2P', cursive; }
@@ -81,7 +87,7 @@ export default function Home() {
         .plus-sign { font-size: 3rem; font-weight: bold; color: #777; line-height: 1; }
       `}</style>
 
-      <div className="pixel-border w-full h-full p-4 overflow-y-auto">
+        <div className="pixel-border w-full h-full p-4 overflow-y-auto">
         {/* Window Header */}
         <div className="dark-bg pixel-border border-2 px-4 py-2 mb-4 flex justify-between items-center relative">
            <button
@@ -101,17 +107,25 @@ export default function Home() {
         </div>
 
         {/* Main Content */}
-        <div className="space-y-4">
+        <div className="space-y-6 pb-4">
           {/* User Info & Top Actions */}
           <div className="flex justify-between items-start text-black text-[10px] font-mono p-2">
             
             <div className="flex space-x-2 items-center">
-              <div className="circular-avatar" title="Sign In / User Profile">
-                {user?.name?.charAt(0)?.toUpperCase() || 'U'}
+              <div className="circular-avatar" title="User Profile">
+                {user?.avatar ? (
+                  <img src={user.avatar} alt="Avatar" className="w-full h-full rounded-full object-cover" />
+                ) : (
+                  getUserInitials(user?.name || 'User')
+                )}
               </div>
               <div>
-              <p className="font-bold">Space ID : <span className="text-neon-pink">123456789</span></p>
-              <p className="font-bold">User ID : <br /><span className="text-neon-pink">{user?.name || user?.email || 'Guest'}</span></p>
+                <p className="font-bold">Space ID : <span className="text-neon-pink" title="Your unique CyberBuddy identifier">
+                  {user?.id && user?.email ? generateSpaceId(user.id, user.email) : 'UNKNOWN'}
+                </span></p>
+                <p className="font-bold">User : <br /><span className="text-neon-pink">
+                  {user?.name || 'Guest User'}
+                </span></p>
               </div>
               <button className="pixel-button px-2 py-1 bg-gray-300 hover:bg-gray-200 text-[8px] font-pixel">
                 Share this extension
@@ -306,13 +320,12 @@ export default function Home() {
           </section>
 
           {/* Footer / Guidance */}
-          <div className="text-center text-[8px] font-mono text-gray-400 mt-1">
-            Having question? &gt;Go to <span className="text-neon-cyan underline cursor-pointer">guide</span>
+          <div className="text-center text-[8px] font-mono text-gray-400 mt-6">
+            Having question? {'>'} Go to <span className="text-neon-cyan underline cursor-pointer" onClick={() => navigate('/guide')}>guide</span>
           </div>
 
-          {/* Footer Navigation Icons */}
-          <Footer />
         </div>
+      </div>
       </div>
     </div>
   )

@@ -30,8 +30,8 @@ export function Footer({ className = '' }: FooterProps) {
   ]
 
   return (
-    <div className={`fixed bottom-0 left-0 right-0 py-4 ${className}`}>
-      <div className="flex justify-center items-center gap-3">
+    <div className={`fixed top-0 left-0 h-full w-16 bg-gray-800 border-r-2 border-black z-50 ${className}`}>
+      <div className="flex flex-col items-center gap-3 h-full justify-center py-4">
         {navItems.map((item) => {
           const Icon = item.icon
           const isActive = location.pathname === item.path
@@ -40,7 +40,7 @@ export function Footer({ className = '' }: FooterProps) {
             <button
               key={item.path}
               onClick={() => navigate(item.path)}
-              className={`pixel-border border-2 bg-transparent p-2 flex items-center justify-center transition-all ${
+              className={`pixel-border border-2 bg-gray-800 p-2 flex items-center justify-center transition-all ${
                 isActive ? 'border-[#ff00ff] drop-shadow-lg' : 'border-black'
               }`}
               aria-label={item.label}

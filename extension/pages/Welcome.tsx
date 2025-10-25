@@ -1,60 +1,29 @@
-import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState } from 'react'
 import { useAuth } from '@/hooks/useAuth'
-import { CONFIG } from '@/lib/config'
-import { debugAllStorage } from '@/lib/utils/debugStorage'
 
 export default function Welcome() {
   const [isLoggingIn, setIsLoggingIn] = useState(false)
-  const navigate = useNavigate()
-  const { isAuthenticated, isLoading, login, error } = useAuth()
-
-  // Redirect if already authenticated
-  useEffect(() => {
-    if (isAuthenticated && !isLoading) {
-      // Debug storage first
-      debugAllStorage().then(() => {
-        // Check if user has created a pet using the correct storage key
-        chrome.storage.local.get([CONFIG.STORAGE_KEYS.CURRENT_PET]).then((result) => {
-          const currentPet = result[CONFIG.STORAGE_KEYS.CURRENT_PET]
-          console.log('Welcome: Checking for current pet:', currentPet)
-          
-          if (currentPet) {
-            console.log('Welcome: Pet found, navigating to home')
-            navigate('/home')
-          } else {
-            console.log('Welcome: No pet found, navigating to create-pet')
-            navigate('/create-pet')
-          }
-        })
-      })
-    }
-  }, [isAuthenticated, isLoading, navigate])
+  const { login, error } = useAuth()
 
   const handleGoogleLogin = async () => {
+    console.log('Welcome: Starting Google login...')
     setIsLoggingIn(true)
     try {
+      console.log('Welcome: Calling login() function...')
       await login()
-      // Navigation will happen in useEffect after isAuthenticated changes
+      console.log('Welcome: Login completed successfully!')
+      // Navigation will happen automatically via the AuthRedirect component
     } catch (error) {
-      console.error('Login failed:', error)
+      console.error('Welcome: Login failed:', error)
+      // Don't show error to user since we have fallback authentication
     } finally {
+      console.log('Welcome: Setting isLoggingIn to false')
       setIsLoggingIn(false)
     }
   }
 
-  if (isLoading) {
-    return (
-      <div className="h-[600px] w-[400px] bg-gray-800 flex items-center justify-center">
-        <div className="pixel-border p-6 text-center">
-          <p className="font-pixel text-sm text-neon-cyan animate-pulse">LOADING...</p>
-        </div>
-      </div>
-    )
-  }
-
   return (
-    <div className="h-[600px] w-[400px] bg-gray-800 flex items-center justify-center p-3 overflow-hidden">
+    <div className="h-[600px] w-[450px] bg-gray-800 flex items-center justify-center p-3 overflow-hidden">
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
         .font-pixel { font-family: 'Press Start 2P', cursive; }
@@ -76,7 +45,7 @@ export default function Welcome() {
         }
       `}</style>
 {/* Window Header */}
-      <div className="pixel-border w-full p-4 overflow-y-auto max-h-full">
+      <div className="pixel-border w-full h-full p-4 overflow-y-auto">
           {/* ---do we need this part?
           Window Header 
         <div className="dark-bg pixel-border border-2 px-3 py-2 mb-4 flex justify-between items-center relative">
@@ -95,7 +64,11 @@ export default function Welcome() {
           {/* Logo/Icon */}
           <div className="flex justify-center mb-4">
             <div className="w-24 h-24 border-4 border-black bg-gray-300 flex items-center justify-center">
-              <span className="text-5xl">🤖</span>
+              <img 
+                src="/icon/96.png" 
+                alt="Cyber Buddy" 
+                className="w-16 h-16 object-contain"
+              />
             </div>
           </div>
 

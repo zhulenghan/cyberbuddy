@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Footer } from '@/components/layout/Footer'
+import { PixelFooter } from '@/components/layout/PixelFooter'
 import { ArrowLeftIcon } from 'raster-react'
 import { showPet } from '@/lib/utils/petControl'
 
@@ -25,7 +25,12 @@ export default function Instruction() {
   }
 
   return (
-    <div className="h-[600px] w-[400px] bg-gray-800 flex items-center justify-center p-3 overflow-hidden">
+    <div className="h-[600px] w-[450px] bg-gray-800 flex relative overflow-hidden">
+      {/* Left Sidebar Navigation */}
+      <PixelFooter />
+      
+      {/* Main Content - properly spaced from sidebar */}
+      <div className="ml-16 flex-1 relative z-10 h-full">
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
         .font-pixel { font-family: 'Press Start 2P', cursive; }
@@ -44,7 +49,7 @@ export default function Instruction() {
         .phase-separator { height: 4px; background-color: #1a1a1a; margin: 16px 0; box-shadow: 0 4px 0 #000; }
       `}</style>
 
-      <div className="pixel-border w-full h-full p-4 overflow-y-auto">
+        <div className="pixel-border w-full h-full p-4 overflow-y-auto">
         {/* Window Header */}
         <div className="dark-bg pixel-border border-2 px-4 py-2 mb-4 flex justify-between items-center relative">
            <button
@@ -134,15 +139,11 @@ export default function Instruction() {
             Meet with your buddy now!
           </button>
 
-          <div className="text-center text-[10px] font-mono text-gray-400 mt-1">
-            Having question? &gt;Go to <span className="text-neon-cyan underline">guide</span>
+          <div className="text-center text-[8px] font-mono text-gray-400 mt-1">
+            Having question? {'>'} Go to <span className="text-neon-cyan underline cursor-pointer" onClick={() => navigate('/guide')}>guide</span>
           </div>
 
-          {/* Footer icons */}
-          <div className="flex justify-around p-3 dark-bg pixel-border border-2 mt-2">
-            {/* We rely on shared Footer for actual routing; this block is decorative */}
-            <Footer />
-          </div>
+        </div>
         </div>
       </div>
     </div>

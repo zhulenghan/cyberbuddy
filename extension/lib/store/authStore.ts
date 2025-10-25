@@ -45,16 +45,24 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       console.log('Google login successful:', userInfo.email)
 
-      // Step 2: Exchange Google token for our backend tokens
-      const response = await apiClient.post('/auth/google', {
-        googleToken,
-      })
-
-      if (!response.success || !response.data) {
-        throw new Error(response.error?.message || 'Login failed')
+      // For now, skip backend authentication and use Google user info directly
+      // TODO: Re-enable backend authentication when backend is ready
+      const user: User = {
+        id: userInfo.id,
+        email: userInfo.email,
+        name: userInfo.name,
+        avatar: userInfo.picture,
+        createdAt: new Date().toISOString(),
+        subscription: 'free',
+        generationsRemaining: 10,
       }
 
-      const { user, tokens } = response.data as any
+      const tokens = {
+        accessToken: googleToken,
+        refreshToken: '', // Not needed for now
+        expiresIn: 3600, // 1 hour
+        tokenType: 'Bearer' as const,
+      }
 
       // Store tokens in Chrome storage
       await chromeStorage.setMultiple({
@@ -73,7 +81,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         isAuthenticated: true,
         isLoading: false,
       })
+
+      console.log('Login completed successfully, user authenticated')
     } catch (error) {
+      console.error('Login error:', error)
       set({
         error: error instanceof Error ? error.message : 'Login failed',
         isLoading: false,
@@ -193,8 +204,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         tokenExpiry,
       })
 
-      if (!accessToken || !refreshToken || !user) {
-        console.log('No valid session found')
+      if (!accessToken || !user) {
+        console.log('No valid session found - missing access token or user')
         set({ isLoading: false, isAuthenticated: false })
         return
       }
@@ -220,7 +231,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           user,
           tokens: {
             accessToken,
-            refreshToken,
+            refreshToken: refreshToken || '',
             expiresIn: tokenExpiry ? Math.floor((tokenExpiry - Date.now()) / 1000) : 0,
             tokenType: 'Bearer',
           },
