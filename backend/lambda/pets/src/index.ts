@@ -227,12 +227,12 @@ async function handleConfirmPet(event: APIGatewayProxyEvent): Promise<APIGateway
     const baseImageBuffer = Buffer.from(await idleImageObj.Body!.transformToByteArray())
 
     // 3. ⭐ Generate 4 variants using image-to-image (parallel)
-    const allStates = ['idle', 'happy', 'focused', 'tired', 'excited']
+    const allStates = ['idle', 'entertainment', 'focused', 'shopping', 'social']
     const imageBuffers: Record<string, Buffer> = {
       idle: baseImageBuffer  // Base image
     }
 
-    const variantStates = ['happy', 'focused', 'tired', 'excited']
+    const variantStates = ['entertainment', 'focused', 'shopping', 'social']
     const variantPromises = variantStates.map(async (state) => {
       const variantBuffer = await generateImageVariant(
         baseImageBuffer,
@@ -392,17 +392,17 @@ async function handleDeletePet(event: APIGatewayProxyEvent): Promise<APIGatewayP
 function buildImagePrompt(userPrompt: string, state: string, style: 'pixel' | '3d'): string {
   const stateDescriptions: Record<string, string> = {
     idle: 'resting peacefully, calm expression, relaxed pose',
-    happy: 'joyful and cheerful, big smile, playful pose',
+    entertainment: 'joyful and cheerful, big smile, playful pose',
     focused: 'concentrating hard, determined look, working or studying',
-    tired: 'exhausted and sleepy, droopy eyes, yawning',
-    excited: 'energetic and thrilled, jumping with joy, wide eyes',
+    shopping: 'pushing a shopping cart',
+    social: 'using a mobile phone to make video calls',
   }
 
   const stylePrefix = style === 'pixel'
     ? 'pixel art, 16-bit retro game style, colorful'
     : '3D rendered, cute cartoon style, vibrant colors'
 
-  return `${stylePrefix}, ${userPrompt}, ${stateDescriptions[state]}, transparent background, centered, full body, kawaii, game character design`
+  return `${stylePrefix}, ${userPrompt}, ${stateDescriptions[state]}, white background, centered, full body, kawaii, game character design`
 }
 
 /**
@@ -410,7 +410,7 @@ function buildImagePrompt(userPrompt: string, state: string, style: 'pixel' | '3
  */
 function buildImage2ImagePrompt(state: string, userPrompt: string): string {
   const stateDescriptions: Record<string, string> = {
-    happy: 'joyful and cheerful with a big smile and playful pose',
+    entertainment: 'joyful and cheerful with a big smile and playful pose',
     focused: 'concentrated with a determined expression, working or studying pose',
     tired: 'exhausted and sleepy with droopy eyes and yawning expression',
     excited: 'energetic and thrilled, jumping with joy and wide eyes',
@@ -422,7 +422,7 @@ IMPORTANT:
 - Keep the EXACT SAME character design, colors, and style from the input image
 - Only change the facial expression and body pose to match the ${state} state
 - Maintain all unique features and characteristics of the original character
-- The background must be transparent
+- The background must be white
 - Do not add or remove any design elements
 Original character description: ${userPrompt}`
 
