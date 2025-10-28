@@ -129,10 +129,10 @@ export default function FocusReport() {
         {/* Small behavior images */}
         <div className="flex gap-2 mb-4">
           {[
-            { state: 'happy', label: '开心' },
-            { state: 'focused', label: '专注' },
-            { state: 'tired', label: '疲惫' },
-            { state: 'excited', label: '兴奋' }
+            { state: 'shopping', label: 'shopping' },
+            { state: 'focused', label: 'focused' },
+            { state: 'entertainment', label: 'entertainment' },
+            { state: 'social', label: 'social' }
           ].map(({ state, label }, i) => {
             const imageUrl = currentPet?.images?.[state as keyof typeof currentPet.images]
             return (
