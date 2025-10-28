@@ -19,10 +19,64 @@ export default function FocusReport() {
     ? Math.floor((todayStats.totalDuration % (1000 * 60 * 60)) / (1000 * 60))
     : 0
 
+  // Calculate category durations and percentages from real data
+  const categoryData = todayStats ? [
+    {
+      label: 'Focused',
+      duration: todayStats.byLabel.focused.duration,
+      percentage: todayStats.byLabel.focused.percentage,
+      color: '#F637EC', // Neon Pink
+    },
+    {
+      label: 'Entertainment',
+      duration: todayStats.byLabel.entertainment.duration,
+      percentage: todayStats.byLabel.entertainment.percentage,
+      color: '#00ffff', // Neon Cyan
+    },
+    {
+      label: 'Shopping',
+      duration: todayStats.byLabel.shopping.duration,
+      percentage: todayStats.byLabel.shopping.percentage,
+      color: '#ffff00', // Neon Yellow
+    },
+    {
+      label: 'Social',
+      duration: todayStats.byLabel.social.duration,
+      percentage: todayStats.byLabel.social.percentage,
+      color: '#ff8000', // Neon Orange
+    },
+  ].filter(cat => cat.percentage > 0) : [] // Only show categories with data
+
+  // Calculate angles for pie chart (360 degrees total)
+  let cumulativeAngle = 0
+  const categoryAngles = categoryData.map(cat => {
+    const startAngle = cumulativeAngle
+    const sweepAngle = (cat.percentage / 100) * 360
+    cumulativeAngle += sweepAngle
+    return {
+      ...cat,
+      startAngle,
+      sweepAngle,
+    }
+  })
+
+  // Format duration to hours and minutes
+  const formatDuration = (ms: number) => {
+    const hours = Math.floor(ms / (1000 * 60 * 60))
+    const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60))
+    if (hours > 0) {
+      return `${hours}h ${minutes}m`
+    }
+    return `${minutes}m`
+  }
+
+  // Get top websites from stats
+  const topWebpages = todayStats?.topSites.slice(0, 3).map(site => site.domain) || ['No data yet']
+
   // Mock data for demonstration - matching example structure
   const report = {
     wordCount: 'XXXX',
-    topWebpages: ['#TAG#', '#TAG#', '#TAG#'],
+    topWebpages,
     surpassedPercentage: 'XXX',
     focusPersona: 'XXX',
     daysActive: 5,
@@ -126,14 +180,14 @@ export default function FocusReport() {
           </div>
         </div>
 
-        {/* Small behavior images */}
+        {/* Small behavior images - showing different activity states */}
         <div className="flex gap-2 mb-4">
           {[
-            { state: 'happy', label: '开心' },
-            { state: 'focused', label: '专注' },
-            { state: 'tired', label: '疲惫' },
-            { state: 'excited', label: '兴奋' }
-          ].map(({ state, label }, i) => {
+            { state: 'focused', label: 'Focused', emoji: '🎯' },
+            { state: 'entertainment', label: 'Entertain', emoji: '🎮' },
+            { state: 'social', label: 'Social', emoji: '💬' },
+            { state: 'shopping', label: 'Shopping', emoji: '🛒' }
+          ].map(({ state, label, emoji }, i) => {
             const imageUrl = currentPet?.images?.[state as keyof typeof currentPet.images]
             return (
               <div key={state} className="w-20 h-20 relative pixel-border bg-gray-100 overflow-hidden" style={{
@@ -149,14 +203,14 @@ export default function FocusReport() {
                     />
                     <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-60 px-1">
                       <p className="text-[6px] font-bold text-white text-center" style={{ fontFamily: 'monospace' }}>
-                        {label}
+                        {emoji} {label}
                       </p>
                     </div>
                   </>
                 ) : (
                   <div className="w-full h-full flex flex-col items-center justify-center text-center">
                     <p className="text-[7px] font-bold whitespace-pre-line" style={{ fontFamily: 'monospace' }}>
-                      {label}\n暂无图片
+                      {emoji}<br/>{label}<br/>暂无图片
                     </p>
                   </div>
                 )}
@@ -180,33 +234,27 @@ export default function FocusReport() {
                 border: '4px solid #000',
                 boxShadow: '2px 2px 0 #000'
               }}>
-                {/* Ring 1 - Focus (35%) - Neon Pink - 0° to 126° */}
-                <div className="absolute inset-0 rounded-full" style={{
-                  background: `conic-gradient(from 0deg, #F637EC 0deg, #F637EC 126deg, transparent 126deg, transparent 360deg)`,
-                  mask: 'radial-gradient(circle, transparent 32px, black 32px, black 60px, transparent 60px)',
-                  WebkitMask: 'radial-gradient(circle, transparent 32px, black 32px, black 60px, transparent 60px)'
-                }}></div>
-                
-                {/* Ring 2 - Study (25%) - Neon Cyan - 126° to 216° */}
-                <div className="absolute inset-0 rounded-full" style={{
-                  background: `conic-gradient(from 126deg, #00ffff 0deg, #00ffff 90deg, transparent 90deg, transparent 360deg)`,
-                  mask: 'radial-gradient(circle, transparent 32px, black 32px, black 60px, transparent 60px)',
-                  WebkitMask: 'radial-gradient(circle, transparent 32px, black 32px, black 60px, transparent 60px)'
-                }}></div>
-                
-                {/* Ring 3 - Shopping (20%) - Neon Yellow - 216° to 288° */}
-                <div className="absolute inset-0 rounded-full" style={{
-                  background: `conic-gradient(from 216deg, #ffff00 0deg, #ffff00 72deg, transparent 72deg, transparent 360deg)`,
-                  mask: 'radial-gradient(circle, transparent 32px, black 32px, black 60px, transparent 60px)',
-                  WebkitMask: 'radial-gradient(circle, transparent 32px, black 32px, black 60px, transparent 60px)'
-                }}></div>
-                
-                {/* Ring 4 - Exercise (20%) - Neon Orange - 288° to 360° */}
-                <div className="absolute inset-0 rounded-full" style={{
-                  background: `conic-gradient(from 288deg, #ff8000 0deg, #ff8000 72deg, transparent 72deg, transparent 360deg)`,
-                  mask: 'radial-gradient(circle, transparent 32px, black 32px, black 60px, transparent 60px)',
-                  WebkitMask: 'radial-gradient(circle, transparent 32px, black 32px, black 60px, transparent 60px)'
-                }}></div>
+                {/* Dynamic category rings based on real data */}
+                {categoryAngles.length > 0 ? (
+                  categoryAngles.map((cat, index) => (
+                    <div 
+                      key={index}
+                      className="absolute inset-0 rounded-full" 
+                      style={{
+                        background: `conic-gradient(from ${cat.startAngle}deg, ${cat.color} 0deg, ${cat.color} ${cat.sweepAngle}deg, transparent ${cat.sweepAngle}deg, transparent 360deg)`,
+                        mask: 'radial-gradient(circle, transparent 32px, black 32px, black 60px, transparent 60px)',
+                        WebkitMask: 'radial-gradient(circle, transparent 32px, black 32px, black 60px, transparent 60px)'
+                      }}
+                    ></div>
+                  ))
+                ) : (
+                  // Show placeholder when no data
+                  <div className="absolute inset-0 rounded-full flex items-center justify-center">
+                    <p className="text-[8px] text-center font-bold" style={{ fontFamily: 'monospace' }}>
+                      No activity<br/>tracked yet
+                    </p>
+                  </div>
+                )}
                 
                 {/* Inner Circle */}
                 <div className="absolute inset-8 rounded-full flex items-center justify-center" style={{
@@ -215,71 +263,83 @@ export default function FocusReport() {
                   boxShadow: 'inset 2px 2px 0 #000000'
                 }}>
                   <div className="text-center">
-                    <p className="text-sm font-bold text-black" style={{ fontFamily: 'monospace' }}>100%</p>
+                    <p className="text-sm font-bold text-black" style={{ fontFamily: 'monospace' }}>
+                      {todayStats ? '100%' : '0%'}
+                    </p>
                     <p className="text-[6px] font-bold" style={{ fontFamily: 'monospace' }}>DAILY</p>
                   </div>
                 </div>
               </div>
               
-              {/* Legend */}
+              {/* Legend - Dynamic based on actual data */}
               <div className="mt-3 space-y-1">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3" style={{ backgroundColor: '#F637EC', border: '1px solid #000' }}></div>
-                  <p className="text-[7px] font-bold" style={{ fontFamily: 'monospace' }}>Focus (35%)</p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3" style={{ backgroundColor: '#00ffff', border: '1px solid #000' }}></div>
-                  <p className="text-[7px] font-bold" style={{ fontFamily: 'monospace' }}>Study (25%)</p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3" style={{ backgroundColor: '#ffff00', border: '1px solid #000' }}></div>
-                  <p className="text-[7px] font-bold" style={{ fontFamily: 'monospace' }}>Shopping (20%)</p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3" style={{ backgroundColor: '#ff8000', border: '1px solid #000' }}></div>
-                  <p className="text-[7px] font-bold" style={{ fontFamily: 'monospace' }}>Exercise (20%)</p>
-                </div>
+                {categoryData.length > 0 ? (
+                  categoryData.map((cat, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                      <div className="w-3 h-3" style={{ backgroundColor: cat.color, border: '1px solid #000' }}></div>
+                      <p className="text-[7px] font-bold" style={{ fontFamily: 'monospace' }}>
+                        {cat.label} ({cat.percentage.toFixed(1)}%)
+                      </p>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-[7px] font-bold text-center" style={{ fontFamily: 'monospace' }}>
+                    Start browsing to<br/>track activity
+                  </p>
+                )}
               </div>
             </div>
           </div>
 
           {/* Right: Stats Boxes */}
           <div className="flex-1 space-y-1">
-            {/* 4 Individual Stats Boxes */}
+            {/* Focus Hours Box */}
             <div className="p-2" style={{
               backgroundColor: '#00ffff',
               border: '4px solid #000',
               boxShadow: '4px 4px 0 #000'
             }}>
               <p className="text-[9px] font-bold" style={{ fontFamily: 'monospace' }}>
-                Focus hours: xxxx
+                Total time: {todayStats ? formatDuration(todayStats.totalDuration) : '0m'}
               </p>
             </div>
+            
+            {/* Category Breakdown Box */}
             <div className="p-2" style={{
               backgroundColor: '#00ffff',
               border: '4px solid #000',
               boxShadow: '4px 4px 0 #000'
             }}>
-              <p className="text-[9px] font-bold" style={{ fontFamily: 'monospace' }}>
-                Webpage used:
+              <p className="text-[9px] font-bold mb-1" style={{ fontFamily: 'monospace' }}>
+                Breakdown:
               </p>
+              <div className="space-y-0.5">
+                <p className="text-[7px]" style={{ fontFamily: 'monospace' }}>
+                  Focused: {todayStats ? formatDuration(todayStats.byLabel.focused.duration) : '0m'}
+                </p>
+                <p className="text-[7px]" style={{ fontFamily: 'monospace' }}>
+                  Entertainment: {todayStats ? formatDuration(todayStats.byLabel.entertainment.duration) : '0m'}
+                </p>
+                <p className="text-[7px]" style={{ fontFamily: 'monospace' }}>
+                  Shopping: {todayStats ? formatDuration(todayStats.byLabel.shopping.duration) : '0m'}
+                </p>
+                <p className="text-[7px]" style={{ fontFamily: 'monospace' }}>
+                  Social: {todayStats ? formatDuration(todayStats.byLabel.social.duration) : '0m'}
+                </p>
+              </div>
             </div>
+            
+            {/* Top Webpages Box */}
             <div className="p-2" style={{
               backgroundColor: '#00ffff',
               border: '4px solid #000',
               boxShadow: '4px 4px 0 #000'
             }}>
-              <p className="text-[8px] font-bold" style={{ fontFamily: 'monospace' }}>
-                #tag# #tag# #tag#
+              <p className="text-[9px] font-bold mb-1" style={{ fontFamily: 'monospace' }}>
+                Top sites:
               </p>
-            </div>
-            <div className="p-2" style={{
-              backgroundColor: '#00ffff',
-              border: '4px solid #000',
-              boxShadow: '4px 4px 0 #000'
-            }}>
-              <p className="text-[8px] font-bold" style={{ fontFamily: 'monospace' }}>
-                You have surpassed xxx % people
+              <p className="text-[7px]" style={{ fontFamily: 'monospace' }}>
+                {topWebpages.join(', ')}
               </p>
             </div>
             
@@ -297,7 +357,10 @@ export default function FocusReport() {
                 Your Focus Persona:
               </p>
               <p className="text-sm font-bold" style={{ fontFamily: 'monospace' }}>
-                "XXX"
+                {categoryData.length > 0 && categoryData[0].percentage > 40 
+                  ? `${categoryData[0].label} Master 🎯`
+                  : 'Balanced Explorer 🌟'
+                }
               </p>
             </div>
           </div>
