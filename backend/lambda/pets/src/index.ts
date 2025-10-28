@@ -410,17 +410,16 @@ function buildImagePrompt(userPrompt: string, state: string, style: 'pixel' | '3
  */
 function buildImage2ImagePrompt(state: string, userPrompt: string): string {
   const stateDescriptions: Record<string, string> = {
-    entertainment: 'joyful and cheerful with a big smile and playful pose',
-    focused: 'concentrated with a determined expression, working or studying pose',
-    tired: 'exhausted and sleepy with droopy eyes and yawning expression',
-    excited: 'energetic and thrilled, jumping with joy and wide eyes',
+    entertainment: 'joyful and cheerful, big smile, playful pose',
+    focused: 'concentrating hard, determined look, working or studying',
+    shopping: 'pushing a shopping cart',
+    social: 'using a mobile phone to make video calls',
   }
 
   // ⭐ Emphasize keeping same character design, only changing state
   const prompt = `Transform this character to be ${stateDescriptions[state]}.
 IMPORTANT:
 - Keep the EXACT SAME character design, colors, and style from the input image
-- Only change the facial expression and body pose to match the ${state} state
 - Maintain all unique features and characteristics of the original character
 - The background must be white
 - Do not add or remove any design elements
