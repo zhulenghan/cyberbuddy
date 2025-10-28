@@ -5,6 +5,8 @@ import { ArrowLeftIcon } from 'raster-react'
 import { Footer } from '@/components/layout/Footer'
 import { useActivityTracker } from '@/hooks/useActivityTracker'
 import { usePet } from '@/hooks/usePet'
+import { useEffect, useState } from 'react'
+import { timeTracker } from '@/lib/tracker/time-tracker'
 
 export default function FocusReport() {
   const navigate = useNavigate()
@@ -15,31 +17,29 @@ export default function FocusReport() {
   const totalHours = todayStats
     ? Math.floor(todayStats.totalDuration / (1000 * 60 * 60))
     : 0
+  console.log('Today Stats:', todayStats)
   const totalMinutes = todayStats
     ? Math.floor((todayStats.totalDuration % (1000 * 60 * 60)) / (1000 * 60))
     : 0
 
   // Mock data for demonstration - matching example structure
-  const report = {
-    wordCount: 'XXXX',
-    topWebpages: ['#TAG#', '#TAG#', '#TAG#'],
-    surpassedPercentage: 'XXX',
-    focusPersona: 'XXX',
-    daysActive: 5,
-    totalDays: 7,
-    startDate: '10/03',
-    endDate: '10/09',
-    monthlyStats: [
-      { day: '01', minutes: 50 },
-      { day: '02', minutes: 40 },
-      { day: '03', minutes: 50 },
-      { day: '04', minutes: 40 },
-      { day: '05', minutes: 60 },
-      { day: '06', minutes: 40 },
-      { day: '07', minutes: 70 },
-    ],
-    currentMonth: 'OCTOBER',
-  }
+  const [report, setReport] = useState<{
+    topWebpages: string[]
+    surpassedPercentage: string
+    focusPersona: string
+  }>({ topWebpages: [], surpassedPercentage: '', focusPersona: '' })
+
+  useEffect(() => {
+    async function fetchReport() {
+      const topPages = await timeTracker.getStatsByPage()
+      setReport({
+        topWebpages: topPages.slice(0, 3).map(p => p.domain),
+        surpassedPercentage: '75', // 之后可动态计算
+        focusPersona: 'Deep Thinker', // 之后可根据标签分布生成
+      })
+    }
+    fetchReport()
+  }, [])
 
   // Get current date and time
   const now = new Date()
@@ -252,7 +252,7 @@ export default function FocusReport() {
               boxShadow: '4px 4px 0 #000'
             }}>
               <p className="text-[9px] font-bold" style={{ fontFamily: 'monospace' }}>
-                Focus hours: xxxx
+                Focus hours: {totalHours}h {totalMinutes}m
               </p>
             </div>
             <div className="p-2" style={{
@@ -270,7 +270,7 @@ export default function FocusReport() {
               boxShadow: '4px 4px 0 #000'
             }}>
               <p className="text-[8px] font-bold" style={{ fontFamily: 'monospace' }}>
-                #tag# #tag# #tag#
+                {report.topWebpages.join(' ')}
               </p>
             </div>
             <div className="p-2" style={{
@@ -326,7 +326,7 @@ export default function FocusReport() {
             <span className="text-[9px] font-bold" style={{ fontFamily: 'monospace' }}>{report.endDate}</span>
           </div>
           <p className="text-[9px] font-bold text-center" style={{ fontFamily: 'monospace' }}>
-            Days active {report.daysActive}/{report.totalDays}
+            Days active 5/7
           </p>
         </div>
 

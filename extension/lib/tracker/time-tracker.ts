@@ -225,6 +225,33 @@ export class TimeTracker {
 
     return stats.sort((a, b) => a.date.localeCompare(b.date))
   }
+  async getStatsByPage(date?: string): Promise<
+    Array<{ domain: string; totalDuration: number; visits: number; label: ActivityLabel }>
+  > {
+    const targetDate = date || getTodayString()
+    const activities = await indexedDB.getActivitiesByDate(targetDate)
+
+    const map = new Map<string, { totalDuration: number; visits: number; label: ActivityLabel }>()
+
+    for (const a of activities) {
+      try {
+        const domain = new URL(a.url).hostname.replace('www.', '')
+        if (!map.has(domain)) {
+          map.set(domain, { totalDuration: 0, visits: 0, label: a.label })
+        }
+        const entry = map.get(domain)!
+        entry.totalDuration += a.duration
+        entry.visits += 1
+      } catch {
+        // ignore bad URLs
+      }
+    }
+
+    return Array.from(map.entries()).map(([domain, data]) => ({
+      domain,
+      ...data,
+    })).sort((a, b) => b.totalDuration - a.totalDuration)
+  }
 }
 
 export const timeTracker = new TimeTracker()
