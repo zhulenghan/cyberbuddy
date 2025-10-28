@@ -60,7 +60,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       await chromeStorage.setMultiple({
         [CONFIG.STORAGE_KEYS.ACCESS_TOKEN]: tokens.accessToken,
         [CONFIG.STORAGE_KEYS.REFRESH_TOKEN]: tokens.refreshToken,
-        [CONFIG.STORAGE_KEYS.TOKEN_EXPIRY]: Date.now() + tokens.expiresIn * 1000,
+        [CONFIG.STORAGE_KEYS.TOKEN_EXPIRY]: Date.now() + Math.max(tokens.expiresIn ?? 0, 7 * 24 * 60 * 60) * 1000,
         [CONFIG.STORAGE_KEYS.USER]: user,
       })
 
@@ -142,7 +142,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       // Update stored tokens
       await chromeStorage.setMultiple({
         [CONFIG.STORAGE_KEYS.ACCESS_TOKEN]: accessToken,
-        [CONFIG.STORAGE_KEYS.TOKEN_EXPIRY]: Date.now() + expiresIn * 1000,
+        [CONFIG.STORAGE_KEYS.TOKEN_EXPIRY]: Date.now() + Math.max(tokens.expiresIn ?? 0, 7 * 24 * 60 * 60) * 1000,
       })
 
       // Update API client

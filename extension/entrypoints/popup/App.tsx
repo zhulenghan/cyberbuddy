@@ -2,18 +2,23 @@
  * Popup UI - Main App
  */
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { usePet } from '@/hooks/usePet'
 import { useActivityTracker } from '@/hooks/useActivityTracker'
 import '@/assets/styles/globals.css'
 import './style.css'
+import { useAuthStore } from '@/lib/store/authStore'
 
 function App() {
   const { isAuthenticated, isLoading: authLoading, login, error } = useAuth()
   const { currentPet, currentState } = usePet()
   const { todayStats, currentLabel } = useActivityTracker()
   const [isLoggingIn, setIsLoggingIn] = useState(false)
+
+  useEffect(() => {
+    useAuthStore.getState().loadSession()
+  }, [])
 
   const handleLogin = async () => {
     setIsLoggingIn(true)
