@@ -37,6 +37,11 @@ export default defineConfig({
 
   // Vite configuration
   vite: () => ({
+    build: {
+      // Inline assets up to ~200KB as base64 data URIs so images like instruction.png
+      // are embedded directly in the bundle and don't rely on runtime file paths
+      assetsInlineLimit: 200000,
+    },
     resolve: {
       alias: {
         '@shared': path.resolve(__dirname, '../shared'),

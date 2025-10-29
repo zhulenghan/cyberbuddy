@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import instructionImage from '@/assets/instruction.png'
 import { useNavigate } from 'react-router-dom'
 import { Footer } from '@/components/layout/Footer'
 import { ArrowLeftIcon } from 'raster-react'
@@ -93,18 +94,14 @@ export default function Instruction() {
         {/* Phase 3: Instruction */}
         <div className="space-y-3">
           <h1 className="font-pixel text-[10px] mb-2 text-neon-pink text-center">PHASE 3. INSTRUCTION</h1>
-          <section className="p-3 pixel-border bg-white grid grid-cols-2 gap-3">
-            <div className="col-span-1 text-black text-sm font-mono leading-relaxed">
-              <h2 className="font-pixel text-[10px] mb-2 text-neon-pink">INSTRUCTIONS:</h2>
-              <ol className="list-none space-y-2 text-[8px]">
-                <li>1、chat功能可以和宠物进行简单对话，如询问我已经专注了多久，或者告诉我来某浏览页在呢</li>
-                <li>2、clock功能就是计时器</li>
-                <li>3、鼠标悬停在宠物附近会激活宠物动态，点击宠物会弹出右边菜单栏</li>
-                <li>4、尝试打开不同行为的浏览页看看你的宠物是什么反应吧！</li>
-              </ol>
-            </div>
-            <div className="col-span-1 bg-gray-700 border-4 border-black flex items-center justify-center text-center p-4">
-              <p className="text-neon-pink font-pixel text-xs">Pet IMAGE HERE<br />&<br />REAL USE CASE IMAGE HERE</p>
+          <section className="p-3 pixel-border bg-white">
+            <div className="flex justify-center">
+              <img 
+                src={instructionImage}
+                alt="Instruction Guide" 
+                className="max-w-full h-auto"
+                style={{ maxHeight: '400px' }}
+              />
             </div>
           </section>
 
