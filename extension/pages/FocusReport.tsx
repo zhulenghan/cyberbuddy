@@ -73,6 +73,23 @@ export default function FocusReport() {
   // Get top websites from stats
   const topWebpages = todayStats?.topSites.slice(0, 3).map(site => site.domain) || ['No data yet']
 
+  // Determine user persona based on dominant activity
+  const getFocusPersona = () => {
+    if (!categoryData.length || categoryData[0].percentage < 50) {
+      return 'Balanced Multitasker'
+    }
+    
+    const dominant = categoryData[0]
+    const personaMap: Record<string, string> = {
+      'Focused': 'Super Productive',
+      'Entertainment': 'Chill Master',
+      'Social': 'Social Butterfly',
+      'Shopping': 'Smart Shopper',
+    }
+    
+    return personaMap[dominant.label] || 'Balanced Multitasker'
+  }
+
   // Mock data for demonstration - matching example structure
   const report = {
     wordCount: 'XXXX',
@@ -329,39 +346,29 @@ export default function FocusReport() {
               </div>
             </div>
             
-            {/* Top Webpages Box */}
-            <div className="p-2" style={{
-              backgroundColor: '#00ffff',
-              border: '4px solid #000',
-              boxShadow: '4px 4px 0 #000'
-            }}>
-              <p className="text-[9px] font-bold mb-1" style={{ fontFamily: 'monospace' }}>
-                Top sites:
-              </p>
-              <p className="text-[7px]" style={{ fontFamily: 'monospace' }}>
-                {topWebpages.join(', ')}
-              </p>
-            </div>
+           
             
             {/* Large Focus Persona Box */}
             <div className="p-4" style={{
               backgroundColor: '#00ffff',
               border: '4px solid #000',
               boxShadow: '4px 4px 0 #000',
-              height: '64px'
+
             }}>
-              <p className="text-[8px] font-bold" style={{ 
+              <p className="text-[8px] font-bold mb-1" style={{ 
                 fontFamily: 'monospace',
                 color: '#ff00ff'
               }}>
                 Your Focus Persona:
               </p>
-              <p className="text-sm font-bold" style={{ fontFamily: 'monospace' }}>
-                {categoryData.length > 0 && categoryData[0].percentage > 40 
-                  ? `${categoryData[0].label} Master 🎯`
-                  : 'Balanced Explorer 🌟'
-                }
+              <p className="text-[12px] font-bold" style={{ fontFamily: 'monospace' }}>
+                {getFocusPersona()}
               </p>
+              {categoryData.length > 0 && categoryData[0].percentage >= 50 && (
+                <p className="text-[7px] mt-1" style={{ fontFamily: 'monospace' }}>
+                  {categoryData[0].percentage.toFixed(0)}% {categoryData[0].label} time today!
+                </p>
+              )}
             </div>
           </div>
         </div>
