@@ -24,14 +24,15 @@ export class TimeTracker {
   private isIdle: boolean = false
 
   private readonly IDLE_THRESHOLD = 60000 // 1 minute
-  private readonly MIN_DURATION = 5000 // 5 seconds
+  private readonly MIN_DURATION = 1000 // 1 second (lowered to capture more activities)
   private readonly UPDATE_INTERVAL = 1000 // 1 second
 
   /**
    * Start tracking a page
    */
   startTracking(page: PageInfo, label: ActivityLabel): void {
-    // Stop previous tracking
+    // Save previous tracking before starting new one
+    // This ensures we don't lose any activity data
     if (this.currentEntry) {
       this.stopTracking()
     }
@@ -51,9 +52,10 @@ export class TimeTracker {
     // Log tracking start for developers
     console.log(`[Time Tracker] ▶ Started tracking: "${page.title}" as ${label.toUpperCase()}`)
 
-    // Update duration every second
+    // Update duration every second, regardless of idle state
+    // We want to track ALL time spent on a page
     this.updateInterval = setInterval(() => {
-      if (this.currentEntry && this.currentEntry.isActive && !this.isIdle) {
+      if (this.currentEntry && this.currentEntry.isActive) {
         this.currentEntry.duration = Date.now() - this.currentEntry.startTime
       }
     }, this.UPDATE_INTERVAL)
@@ -110,25 +112,24 @@ export class TimeTracker {
   }
 
   /**
-   * Pause tracking (user went idle)
+   * Pause tracking (user went idle or left browser)
+   * Note: We keep tracking time even when idle to capture total time spent
    */
   pause(): void {
     if (this.currentEntry) {
-      this.currentEntry.isActive = false
       this.isIdle = true
+      console.log(`[Time Tracker] ⏸ Paused: "${this.currentEntry.title}" (continuing to count time)`)
     }
   }
 
   /**
    * Resume tracking (user came back)
+   * Note: We don't reset the timer, just mark as active again
    */
   resume(): void {
     if (this.currentEntry) {
-      // Reset start time to now
-      this.currentEntry.startTime = Date.now()
-      this.currentEntry.duration = 0
-      this.currentEntry.isActive = true
       this.isIdle = false
+      console.log(`[Time Tracker] ▶ Resumed: "${this.currentEntry.title}"`)
     }
   }
 
