@@ -19,6 +19,7 @@ interface PetStoreState {
 
   // Actions
   generatePet: (prompt: string, style?: 'pixel' | '3d', name?: string) => Promise<Pet>
+  refreshPetImages: (petId: string) => Promise<Pet>
   selectPet: (petId: string) => Promise<void>
   loadPets: () => Promise<void>
   deletePet: (petId: string) => Promise<void>
@@ -83,6 +84,48 @@ export const usePetStore = create<PetStoreState>((set, get) => ({
     }
   },
 
+  // Refresh pet images (get fresh presigned URLs)
+  refreshPetImages: async (petId: string) => {
+    try {
+      console.log(`[Pet Store] Refreshing images for pet ${petId}...`)
+      
+      const response = await apiClient.get(`/pets/${petId}`)
+      
+      if (!response.success || !response.data) {
+        throw new Error(response.error?.message || 'Failed to refresh pet images')
+      }
+
+      const updatedPet = response.data as Pet
+      
+      // Update in memory
+      const updatedPets = get().availablePets.map(p => 
+        p.id === petId ? updatedPet : p
+      )
+      
+      const currentPet = get().currentPet
+      const updatedCurrentPet = currentPet?.id === petId ? updatedPet : currentPet
+
+      set({
+        availablePets: updatedPets,
+        currentPet: updatedCurrentPet,
+      })
+
+      // Save to IndexedDB and Chrome Storage
+      await indexedDB.savePet(updatedPet)
+      if (updatedCurrentPet) {
+        await chromeStorage.set(CONFIG.STORAGE_KEYS.CURRENT_PET, updatedCurrentPet)
+      }
+      
+      console.log(`[Pet Store] ✅ Successfully refreshed images for pet ${petId}`)
+      
+      return updatedPet
+    } catch (error) {
+      console.error('[Pet Store] Failed to refresh pet images:', error)
+      // Don't throw, just log - this is a background operation
+      throw error
+    }
+  },
+
 
   // Select active pet
   selectPet: async (petId: string) => {
@@ -133,6 +176,16 @@ export const usePetStore = create<PetStoreState>((set, get) => ({
         availablePets: pets,
         currentPet: currentPet || null,
       })
+
+      // Refresh current pet's images in the background to get fresh presigned URLs
+      // This ensures images don't expire (URLs valid for 7 days)
+      if (currentPet?.id) {
+        console.log('[Pet Store] Auto-refreshing current pet images...')
+        // Don't await - let it run in background
+        get().refreshPetImages(currentPet.id).catch((error) => {
+          console.warn('[Pet Store] Failed to auto-refresh pet images (will retry next load):', error)
+        })
+      }
     } catch (error) {
       console.error('Failed to load pets:', error)
     }

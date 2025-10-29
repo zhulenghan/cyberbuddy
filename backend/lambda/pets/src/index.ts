@@ -358,12 +358,98 @@ async function handleConfirmPet(event: APIGatewayProxyEvent): Promise<APIGateway
 /**
  * Get pet by ID
  */
+/**
+ * Get pet by ID with fresh presigned URLs
+ */
 async function handleGetPet(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
-  // TODO: Implement get pet
-  return {
-    statusCode: 501,
-    headers: corsHeaders(),
-    body: JSON.stringify({ message: 'Get pet - Not implemented yet' }),
+  const petId = event.pathParameters?.petId
+  if (!petId) {
+    return {
+      statusCode: 400,
+      headers: corsHeaders(),
+      body: JSON.stringify({ error: 'Missing petId' }),
+    }
+  }
+
+  // Get user ID from JWT token
+  const userId = getUserIdFromEvent(event)
+  if (!userId) {
+    return {
+      statusCode: 401,
+      headers: corsHeaders(),
+      body: JSON.stringify({ error: 'Unauthorized' }),
+    }
+  }
+
+  try {
+    // Get pet metadata from DynamoDB
+    const result = await dynamoClient.send(
+      new GetCommand({
+        TableName: TABLE_NAME,
+        Key: {
+          PK: `PET#${petId}`,
+          SK: 'METADATA',
+        },
+      })
+    )
+
+    if (!result.Item) {
+      return {
+        statusCode: 404,
+        headers: corsHeaders(),
+        body: JSON.stringify({ error: 'Pet not found' }),
+      }
+    }
+
+    const pet = result.Item
+
+    // Verify pet belongs to user (check relationship)
+    const userPetResult = await dynamoClient.send(
+      new GetCommand({
+        TableName: TABLE_NAME,
+        Key: {
+          PK: `USER#${userId}`,
+          SK: `PET_REL#${petId}`,
+        },
+      })
+    )
+
+    if (!userPetResult.Item) {
+      return {
+        statusCode: 403,
+        headers: corsHeaders(),
+        body: JSON.stringify({ error: 'You do not have access to this pet' }),
+      }
+    }
+
+    // Generate fresh presigned URLs for all images
+    const presignedImages = await addPresignedUrls(pet.images)
+
+    console.log(`Refreshed presigned URLs for pet ${petId}`)
+
+    return {
+      statusCode: 200,
+      headers: corsHeaders(),
+      body: JSON.stringify({
+        id: petId,
+        name: pet.name,
+        prompt: pet.prompt,
+        style: pet.style,
+        images: presignedImages,
+        createdAt: pet.createdAt,
+        isActive: userPetResult.Item.isActive,
+      }),
+    }
+  } catch (error) {
+    console.error('Failed to get pet:', error)
+    return {
+      statusCode: 500,
+      headers: corsHeaders(),
+      body: JSON.stringify({
+        error: 'Failed to get pet',
+        message: error instanceof Error ? error.message : 'Unknown error',
+      }),
+    }
   }
 }
 
@@ -516,7 +602,8 @@ function isExpired(createdAt: string): boolean {
 }
 
 // Generate single presigned URL
-async function getPresignedUrl(key: string, expiresIn: number = 3600): Promise<string> {
+// Default expires in 7 days (604800 seconds)
+async function getPresignedUrl(key: string, expiresIn: number = 604800): Promise<string> {
   return await getSignedUrl(
     s3Client,
     new GetObjectCommand({ Bucket: BUCKET_NAME, Key: key }),

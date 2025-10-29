@@ -19,6 +19,14 @@ export default function FocusReport() {
     ? Math.floor((todayStats.totalDuration % (1000 * 60 * 60)) / (1000 * 60))
     : 0
 
+  // Calculate focused time specifically
+  const focusedHours = todayStats
+    ? Math.floor(todayStats.byLabel.focused.duration / (1000 * 60 * 60))
+    : 0
+  const focusedMinutes = todayStats
+    ? Math.floor((todayStats.byLabel.focused.duration % (1000 * 60 * 60)) / (1000 * 60))
+    : 0
+
   // Calculate category durations and percentages from real data
   const categoryData = todayStats ? [
     {
@@ -171,7 +179,7 @@ export default function FocusReport() {
               {dateStr.toUpperCase()}, {timeStr}
             </p>
             <p className="text-[8px] font-bold mt-2" style={{ fontFamily: 'monospace' }}>
-              "以宠物视角第一人称写一段走心文字：你今天专注了xx小时，我也连续吃了很久香蕉！你真是太棒了，本牛油果为你感到骄傲。Congrats! You reached your focus goal!睡个好觉吧！无论什么目标，你有这样的定力都会成功的！"
+              "You have been focused for {focusedHours > 0 ? `${focusedHours}h ${focusedMinutes}m` : `${focusedMinutes}m`} today! Congrats! You reached your focus goal! Get a good night's sleep! With that kind of determination, you'll succeed at any goal!"
             </p>
           </div>
           <div className="w-[121px] h-[114px] flex-shrink-0 pixel-border bg-gray-100 relative overflow-hidden">
@@ -366,7 +374,7 @@ export default function FocusReport() {
               </p>
               {categoryData.length > 0 && categoryData[0].percentage >= 50 && (
                 <p className="text-[7px] mt-1" style={{ fontFamily: 'monospace' }}>
-                  {categoryData[0].percentage.toFixed(0)}% {categoryData[0].label} time today!
+                  {categoryData[0].percentage.toFixed(0)}% {categoryData[0].label} time！
                 </p>
               )}
             </div>

@@ -715,7 +715,7 @@ export default function PetWidget() {
                   e.currentTarget.style.transform = 'translate(0, 0)'
                 }}
               >
-                ⏰ {timerActive ? `计时中 ${timerTime || '25:00'}` : '专注计时器'}
+                ⏰ {timerActive ? `Focus Timer ${timerTime || '25:00'}` : 'Focus Timer'}
               </button>
               <button
                 onClick={handleOpenChat}
@@ -744,7 +744,7 @@ export default function PetWidget() {
                   e.currentTarget.style.transform = 'translate(0, 0)'
                 }}
               >
-                💬 和宠物对话
+                💬 Chat with Pet
               </button>
               <button
                 onClick={handleHidePet}
@@ -773,7 +773,7 @@ export default function PetWidget() {
                   e.currentTarget.style.transform = 'translate(0, 0)'
                 }}
               >
-                👻 收起宠物
+                👻 Hide Pet
               </button>
             </div>
           </div>
