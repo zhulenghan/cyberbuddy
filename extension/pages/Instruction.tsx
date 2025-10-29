@@ -131,12 +131,8 @@ export default function Instruction() {
             Meet with your buddy now!
           </button>
 
-          <div className="text-center text-[10px] font-mono text-gray-400 mt-1">
-            Having question? &gt;Go to <span className="text-neon-cyan underline">guide</span>
-          </div>
-
           {/* Footer icons */}
-          <div className="flex justify-around p-3 dark-bg pixel-border border-2 mt-2">
+          <div className="flex justify-around p-3 mt-2">
             {/* We rely on shared Footer for actual routing; this block is decorative */}
             <Footer />
           </div>
