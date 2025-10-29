@@ -44,6 +44,8 @@ export const handler: APIGatewayProxyHandler = async (
       return await handleGetPet(event)
     } else if (path === '/pets/{petId}' && method === 'DELETE') {
       return await handleDeletePet(event)
+    } else if (path === '/chat' && method === 'POST') {
+      return await handleChat(event)
     }
 
     return {
@@ -60,6 +62,59 @@ export const handler: APIGatewayProxyHandler = async (
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
       }),
+    }
+  }
+}
+
+/**
+ * Simple pet chat using Gemini text model
+ * Ephemeral: no history is stored.
+ */
+async function handleChat(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+  try {
+    const body = JSON.parse(event.body || '{}')
+    const message: string = (body.message || '').toString().slice(0, 2000)
+    const petName: string = (body.petName || 'Buddy').toString().slice(0, 80)
+
+    if (!message) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ error: { message: 'Missing message' } }),
+      }
+    }
+
+    if (!GOOGLE_AI_API_KEY) {
+      return {
+        statusCode: 500,
+        body: JSON.stringify({ error: { message: 'AI not configured' } }),
+      }
+    }
+
+    const persona = `You are ${petName}, a cute, warm, and supportive virtual pet companion.
+Speak in a friendly, encouraging tone.
+Keep replies short (1–2 sentences).
+Do not mention being an AI or model.
+Avoid technical jargon.`
+
+    const result = await ai.models.generateContent({
+      model: 'gemini-2.0-flash-exp',
+      contents: [
+        persona + '\n\nUser: ' + message + '\n' + `${petName}:`,
+      ],
+    })
+
+    const reply = result.candidates?.[0]?.content?.parts?.[0]?.text?.trim() ||
+      "I'm here with you! Let's do this together."
+
+    return {
+      statusCode: 200,
+      body: JSON.stringify({ data: { reply } }),
+    }
+  } catch (error) {
+    console.error('Chat error:', error)
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: { message: 'Chat failed' } }),
     }
   }
 }

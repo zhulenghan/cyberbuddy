@@ -192,6 +192,10 @@ export class CyberBuddyStack extends cdk.Stack {
     activities.addMethod('POST', new apigateway.LambdaIntegration(activitiesFunction))
     activities.addResource('stats').addMethod('GET', new apigateway.LambdaIntegration(activitiesFunction))
 
+    // Simple chat endpoint (ephemeral, no auth for now)
+    const chat = api.root.addResource('chat')
+    chat.addMethod('POST', new apigateway.LambdaIntegration(petsFunction))
+
     // =====================
     // 6. Outputs
     // =====================
