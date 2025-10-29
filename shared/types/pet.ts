@@ -24,7 +24,6 @@ export interface Pet {
   name?: string // Pet's custom name
   images: PetImages
   style: 'pixel' | '3d'
-  behaviorContent?: PetBehaviorContent
   createdAt: string
   isActive: boolean
 }
@@ -50,12 +49,4 @@ export interface PetBehavior {
   state: PetState
   message?: string
   duration?: number
-}
-
-export interface PetBehaviorContent {
-  idle: string
-  happy: string
-  focused: string
-  tired: string
-  excited: string
 }

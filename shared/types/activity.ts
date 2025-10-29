@@ -7,6 +7,7 @@ export enum ActivityLabel {
   ENTERTAINMENT = 'entertainment',
   SOCIAL = 'social',
   SHOPPING = 'shopping',
+  OTHER = 'other',
 }
 
 export interface PageInfo {

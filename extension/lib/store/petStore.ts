@@ -3,7 +3,7 @@
  */
 
 import { create } from 'zustand'
-import type { Pet, PetState, Position, PetBehaviorContent } from '@shared/types'
+import type { Pet, PetState, Position } from '@shared/types'
 import { apiClient } from '../api'
 import { chromeStorage, indexedDBStorage as indexedDB } from '../storage'
 import { CONFIG } from '../config'
@@ -19,7 +19,6 @@ interface PetStoreState {
 
   // Actions
   generatePet: (prompt: string, style?: 'pixel' | '3d', name?: string) => Promise<Pet>
-  generateBehaviorContent: (petId: string) => Promise<PetBehaviorContent>
   selectPet: (petId: string) => Promise<void>
   loadPets: () => Promise<void>
   deletePet: (petId: string) => Promise<void>
@@ -84,44 +83,6 @@ export const usePetStore = create<PetStoreState>((set, get) => ({
     }
   },
 
-  // Generate behavior content for a pet
-  generateBehaviorContent: async (petId: string) => {
-    try {
-      const response = await apiClient.post(`/pets/${petId}/behavior`)
-
-      if (!response.success || !response.data) {
-        throw new Error(response.error?.message || 'Failed to generate behavior content')
-      }
-
-      const behaviorContent = response.data.behaviorContent as PetBehaviorContent
-
-      // Update the pet in the store
-      const updatedPets = get().availablePets.map((pet) =>
-        pet.id === petId ? { ...pet, behaviorContent } : pet
-      )
-
-      const currentPet = get().currentPet
-      const updatedCurrentPet = currentPet?.id === petId 
-        ? { ...currentPet, behaviorContent }
-        : currentPet
-
-      set({
-        availablePets: updatedPets,
-        currentPet: updatedCurrentPet,
-      })
-
-      // Save to IndexedDB
-      if (updatedCurrentPet) {
-        await indexedDB.savePet(updatedCurrentPet)
-      }
-
-      return behaviorContent
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to generate behavior content'
-      set({ error: errorMessage })
-      throw error
-    }
-  },
 
   // Select active pet
   selectPet: async (petId: string) => {

@@ -273,9 +273,6 @@ POST /pets
   Body: { prompt: string, style: 'pixel' | '3d' }
   Response: Pet
 
-POST /pets/{petId}/behavior
-  Response: { behaviorContent: PetBehaviorContent }
-
 DELETE /pets/{petId}
 
 GET /pets

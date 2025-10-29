@@ -44,8 +44,6 @@ export const handler: APIGatewayProxyHandler = async (
       return await handleGetPet(event)
     } else if (path === '/pets/{petId}' && method === 'DELETE') {
       return await handleDeletePet(event)
-    } else if (path === '/pets/{petId}/behavior' && method === 'POST') {
-      return await handleGenerateBehavior(event)
     }
 
     return {
@@ -292,28 +290,24 @@ async function handleConfirmPet(event: APIGatewayProxyEvent): Promise<APIGateway
       })
     )
 
-    // 6. ⭐ Generate behavior content
-    const behaviorContent = await generateBehaviorContent(pet.prompt)
-
-    // 7. Update Pet status to permanent
+    // 6. Update Pet status to permanent
     await dynamoClient.send(
       new UpdateCommand({
         TableName: TABLE_NAME,
         Key: { PK: `PET#${petId}`, SK: 'METADATA' },
-        UpdateExpression: 'SET #status = :status, images = :images, behaviorContent = :behavior, updatedAt = :now',
+        UpdateExpression: 'SET #status = :status, images = :images, updatedAt = :now',
         ExpressionAttributeNames: {
           '#status': 'status'
         },
         ExpressionAttributeValues: {
           ':status': 'permanent',
           ':images': permanentImages,
-          ':behavior': behaviorContent,
           ':now': new Date().toISOString()
         }
       })
     )
 
-    // 8. Create User-Pet relationship
+    // 7. Create User-Pet relationship
     await dynamoClient.send(
       new PutCommand({
         TableName: TABLE_NAME,
@@ -332,7 +326,7 @@ async function handleConfirmPet(event: APIGatewayProxyEvent): Promise<APIGateway
       })
     )
 
-    // 9. Generate presigned URLs
+    // 8. Generate presigned URLs
     const presignedImages = await addPresignedUrls(permanentImages)
 
     return {
@@ -344,7 +338,6 @@ async function handleConfirmPet(event: APIGatewayProxyEvent): Promise<APIGateway
         prompt: pet.prompt,
         style: pet.style,
         images: presignedImages,
-        behaviorContent: behaviorContent,
         createdAt: pet.createdAt || new Date().toISOString(), // Use original creation time
         isActive: true,
       })
@@ -566,167 +559,6 @@ function getUserIdFromEvent(event: APIGatewayProxyEvent): string | null {
   return null
 }
 
-/**
- * Generate behavior content for a pet
- */
-async function handleGenerateBehavior(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
-  const petId = event.pathParameters?.petId
-  if (!petId) {
-    return {
-      statusCode: 400,
-      headers: corsHeaders(),
-      body: JSON.stringify({ error: 'Missing pet ID' }),
-    }
-  }
-
-  // Get user ID from JWT token
-  const userId = getUserIdFromEvent(event)
-  if (!userId) {
-    return {
-      statusCode: 401,
-      headers: corsHeaders(),
-      body: JSON.stringify({ error: 'Unauthorized' }),
-    }
-  }
-
-  try {
-    // Get pet from DynamoDB
-    const petResult = await dynamoClient.send(
-      new GetCommand({
-        TableName: TABLE_NAME,
-        Key: {
-          PK: `USER#${userId}`,
-          SK: `PET#${petId}`,
-        },
-      })
-    )
-
-    if (!petResult.Item) {
-      return {
-        statusCode: 404,
-        headers: corsHeaders(),
-        body: JSON.stringify({ error: 'Pet not found' }),
-      }
-    }
-
-    const pet = petResult.Item
-    const behaviorContent = await generateBehaviorContent(pet.prompt)
-
-    // Update pet with behavior content
-    await dynamoClient.send(
-      new UpdateCommand({
-        TableName: TABLE_NAME,
-        Key: {
-          PK: `USER#${userId}`,
-          SK: `PET#${petId}`,
-        },
-        UpdateExpression: 'SET behaviorContent = :behaviorContent, updatedAt = :updatedAt',
-        ExpressionAttributeValues: {
-          ':behaviorContent': behaviorContent,
-          ':updatedAt': new Date().toISOString(),
-        },
-      })
-    )
-
-    return {
-      statusCode: 200,
-      headers: corsHeaders(),
-      body: JSON.stringify({
-        petId,
-        behaviorContent,
-      }),
-    }
-  } catch (error) {
-    console.error('Failed to generate behavior content:', error)
-    return {
-      statusCode: 500,
-      headers: corsHeaders(),
-      body: JSON.stringify({
-        error: 'Failed to generate behavior content',
-        message: error instanceof Error ? error.message : 'Unknown error',
-      }),
-    }
-  }
-}
-
-/**
- * Generate behavior content using AI
- */
-async function generateBehaviorContent(petPrompt: string): Promise<{
-  idle: string
-  happy: string
-  focused: string
-  tired: string
-  excited: string
-}> {
-  if (!GOOGLE_AI_API_KEY) {
-    console.warn('GOOGLE_AI_API_KEY not set, using placeholder behavior content')
-    return {
-      idle: `${petPrompt}在悠闲地休息`,
-      happy: `${petPrompt}心情愉快地玩耍`,
-      focused: `${petPrompt}在专注地工作学习`,
-      tired: `${petPrompt}看起来有些疲惫`,
-      excited: `${petPrompt}兴奋地跳来跳去`,
-    }
-  }
-
-  try {
-    const prompt = `生成符合宠物形象和状态的behavior_content：
-分别生成符合桌宠形象的闲置、开心、专注、疲惫、兴奋的简短描述句子。
-
-用户的输入：${petPrompt}
-
-示例：桌宠是一只黑色的蜗牛（特征是长睫毛，牛仔帽）。
-结果：
-1、闲置：一只黑色的蜗牛（特征是长睫毛、牛仔帽）在悠闲地晒太阳
-2、开心：一只黑色的蜗牛（特征是长睫毛、牛仔帽）开心地摇晃触角
-3、专注：一只黑色的蜗牛（特征是长睫毛、牛仔帽）在努力爬行
-4、疲惫：一只黑色的蜗牛（特征是长睫毛、牛仔帽）累得缩进壳里
-5、兴奋：一只黑色的蜗牛（特征是长睫毛、牛仔帽）兴奋地转圈圈
-
-请按照以下JSON格式返回结果：
-{
-  "idle": "描述句子",
-  "happy": "描述句子",
-  "focused": "描述句子",
-  "tired": "描述句子",
-  "excited": "描述句子"
-}`
-
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: prompt,
-    })
-
-    const content = response.candidates?.[0]?.content?.parts?.[0]?.text
-    if (!content) {
-      throw new Error('No content in AI response')
-    }
-
-    // Parse JSON response (handle markdown code blocks)
-    const jsonMatch = content.match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/)
-    const jsonString = jsonMatch ? jsonMatch[1] : content.trim()
-    const behaviorContent = JSON.parse(jsonString)
-
-    // Validate the response structure
-    if (!behaviorContent.idle || !behaviorContent.happy ||
-        !behaviorContent.focused || !behaviorContent.tired || !behaviorContent.excited) {
-      throw new Error('Invalid behavior content structure')
-    }
-
-    return behaviorContent
-  } catch (error) {
-    console.error('AI behavior generation failed:', error)
-    // Fallback to template-based generation
-    return {
-      idle: `${petPrompt}在悠闲地休息`,
-      happy: `${petPrompt}心情愉快地玩耍`,
-      focused: `${petPrompt}在专注地工作学习`,
-      tired: `${petPrompt}看起来有些疲惫`,
-      excited: `${petPrompt}兴奋地跳来跳去`,
-    }
-  }
-}
 
 /**
  * Generate random pet prompt using Gemini Flash

@@ -42,7 +42,7 @@ export class PageClassifier {
       }
     }
 
-    // Default to 'other'
+    // Default to 'other' for unclassified pages
     const defaultResult: ClassificationResult = {
       label: 'other',
       confidence: 0.5,

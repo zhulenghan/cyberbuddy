@@ -11,7 +11,7 @@ import type { Pet } from '@shared/types' // Import Pet type
 
 export default function CreatePet() {
   const navigate = useNavigate()
-  const { currentPet, generatePet, generateBehaviorContent, isGenerating, error: petError } = usePet()
+  const { currentPet, generatePet, isGenerating, error: petError } = usePet()
   const { tokens, user } = useAuthStore()
   const [petName, setPetName] = useState('')
   const [coreEntity, setCoreEntity] = useState('')
@@ -138,7 +138,7 @@ export default function CreatePet() {
 
       console.log('Pet confirmed, backend returned:', confirmResponse.data)
 
-      // Use the confirmed pet data from backend (now has all 5 images + behaviorContent)
+      // Use the confirmed pet data from backend (now has all 5 images)
       const newPet: Pet = {
         ...confirmResponse.data,
         isActive: true,

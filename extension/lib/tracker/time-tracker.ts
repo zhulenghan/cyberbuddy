@@ -138,14 +138,20 @@ export class TimeTracker {
       entertainment: { duration: 0, count: 0, percentage: 0 },
       social: { duration: 0, count: 0, percentage: 0 },
       shopping: { duration: 0, count: 0, percentage: 0 },
+      other: { duration: 0, count: 0, percentage: 0 },
     }
 
     let totalDuration = 0
 
     for (const activity of activities) {
-      byLabel[activity.label].duration += activity.duration
-      byLabel[activity.label].count += 1
-      totalDuration += activity.duration
+      // Safety check: only count activities with valid labels
+      if (byLabel[activity.label]) {
+        byLabel[activity.label].duration += activity.duration
+        byLabel[activity.label].count += 1
+        totalDuration += activity.duration
+      } else {
+        console.warn(`Invalid activity label: ${activity.label}, skipping`)
+      }
     }
 
     // Calculate percentages
