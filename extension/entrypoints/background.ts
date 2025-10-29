@@ -117,7 +117,8 @@ export default defineBackground(() => {
         title: pageInfo.title,
       })
 
-      console.log(`Page classified: ${label} - ${pageInfo.title}`)
+      // Log classification for developers (shows real-time activity tracking)
+      console.log(`[Page Classifier] "${pageInfo.title}" → ${label.toUpperCase()} | URL: ${pageInfo.url}`)
 
       // Determine pet state from label
       const petState = LABEL_TO_PET_STATE[label]

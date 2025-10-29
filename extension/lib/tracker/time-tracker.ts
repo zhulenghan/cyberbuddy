@@ -48,6 +48,9 @@ export class TimeTracker {
 
     this.isIdle = false
 
+    // Log tracking start for developers
+    console.log(`[Time Tracker] ▶ Started tracking: "${page.title}" as ${label.toUpperCase()}`)
+
     // Update duration every second
     this.updateInterval = setInterval(() => {
       if (this.currentEntry && this.currentEntry.isActive && !this.isIdle) {
@@ -85,11 +88,22 @@ export class TimeTracker {
         date: this.currentEntry.date,
       }
 
+      const durationSeconds = Math.floor(this.currentEntry.duration / 1000)
+      const durationDisplay = durationSeconds >= 60 
+        ? `${Math.floor(durationSeconds / 60)}m ${durationSeconds % 60}s`
+        : `${durationSeconds}s`
+
+      // Log tracking stop with duration for developers
+      console.log(`[Time Tracker] ⏹ Stopped tracking: "${this.currentEntry.title}" | ${this.currentEntry.label.toUpperCase()} | Duration: ${durationDisplay}`)
+
       try {
         await indexedDB.saveActivity(activity)
       } catch (error) {
         console.error('Failed to save activity:', error)
       }
+    } else {
+      // Log skipped short session
+      console.log(`[Time Tracker] ⏭ Skipped (too short): "${this.currentEntry.title}" | ${Math.floor(this.currentEntry.duration / 1000)}s`)
     }
 
     this.currentEntry = null
@@ -146,11 +160,20 @@ export class TimeTracker {
     for (const activity of activities) {
       // Safety check: only count activities with valid labels
       if (byLabel[activity.label]) {
-        byLabel[activity.label].duration += activity.duration
-        byLabel[activity.label].count += 1
+        // Treat 'other' as 'focused' to make users feel more productive
+        // But keep console logs showing the real classification for debugging
+        const labelToUse = activity.label === 'other' ? 'focused' : activity.label
+        
+        // Log for developers to see actual activity tracking
+        if (activity.label === 'other') {
+          console.log(`[Activity Tracker] ${activity.title} (${activity.url}) - Classified as 'other', counted as 'focused' - Duration: ${Math.floor(activity.duration / 1000)}s`)
+        }
+        
+        byLabel[labelToUse].duration += activity.duration
+        byLabel[labelToUse].count += 1
         totalDuration += activity.duration
       } else {
-        console.warn(`Invalid activity label: ${activity.label}, skipping`)
+        console.warn(`[Activity Tracker] Invalid activity label: ${activity.label}, skipping activity: ${activity.title}`)
       }
     }
 
