@@ -55,9 +55,12 @@ export default function FocusReport() {
     },
   ].filter(cat => cat.percentage > 0) : [] // Only show categories with data
 
+  // Sort categories by percentage (desc) so index 0 is dominant
+  const sortedCategoryData = [...categoryData].sort((a, b) => b.percentage - a.percentage)
+
   // Calculate angles for pie chart (360 degrees total)
   let cumulativeAngle = 0
-  const categoryAngles = categoryData.map(cat => {
+  const categoryAngles = sortedCategoryData.map(cat => {
     const startAngle = cumulativeAngle
     const sweepAngle = (cat.percentage / 100) * 360
     cumulativeAngle += sweepAngle
@@ -83,11 +86,11 @@ export default function FocusReport() {
 
   // Determine user persona based on dominant activity
   const getFocusPersona = () => {
-    if (!categoryData.length || categoryData[0].percentage < 50) {
+    if (!sortedCategoryData.length || sortedCategoryData[0].percentage < 50) {
       return 'Balanced Multitasker'
     }
     
-    const dominant = categoryData[0]
+    const dominant = sortedCategoryData[0]
     const personaMap: Record<string, string> = {
       'Focused': 'Super Productive',
       'Entertainment': 'Chill Master',
@@ -298,8 +301,8 @@ export default function FocusReport() {
               
               {/* Legend - Dynamic based on actual data */}
               <div className="mt-3 space-y-1">
-                {categoryData.length > 0 ? (
-                  categoryData.map((cat, index) => (
+                {sortedCategoryData.length > 0 ? (
+                  sortedCategoryData.map((cat, index) => (
                     <div key={index} className="flex items-center gap-2">
                       <div className="w-3 h-3" style={{ backgroundColor: cat.color, border: '1px solid #000' }}></div>
                       <p className="text-[7px] font-bold" style={{ fontFamily: 'monospace' }}>
@@ -372,11 +375,7 @@ export default function FocusReport() {
               <p className="text-[12px] font-bold" style={{ fontFamily: 'monospace' }}>
                 {getFocusPersona()}
               </p>
-              {categoryData.length > 0 && categoryData[0].percentage >= 50 && (
-                <p className="text-[7px] mt-1" style={{ fontFamily: 'monospace' }}>
-                  {categoryData[0].percentage.toFixed(0)}% {categoryData[0].label} time！
-                </p>
-              )}
+              {/* Intentionally show only persona name; no percentage/label line below */}
             </div>
           </div>
         </div>
