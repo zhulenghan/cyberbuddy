@@ -6,6 +6,7 @@ import type { Activity, Pet } from '@shared/types'
 
 const DB_NAME = 'CyberBuddyDB'
 const DB_VERSION = 1
+const LEGACY_DB_NAMES = ['CyberBuddy']
 
 export interface ImageRecord {
   id: string
@@ -31,6 +32,10 @@ export class IndexedDB {
       request.onerror = () => reject(request.error)
       request.onsuccess = () => {
         this.db = request.result
+        // Fire-and-forget legacy migration if needed
+        this.migrateFromLegacyIfNeeded().catch((err) => {
+          console.warn('[IndexedDB] Legacy migration skipped/failed:', err)
+        })
         resolve()
       }
 
@@ -75,6 +80,139 @@ export class IndexedDB {
       throw new Error('Failed to initialize database')
     }
     return this.db
+  }
+
+  /**
+   * One-time migration: import data from legacy DBs if current stores are empty
+   */
+  private async migrateFromLegacyIfNeeded(): Promise<void> {
+    const db = await this.ensureInit()
+
+    // Check if current activities store has any records
+    const hasAnyCurrent = await new Promise<boolean>((resolve, reject) => {
+      const tx = db.transaction('activities', 'readonly')
+      const store = tx.objectStore('activities')
+      const countReq = store.count()
+      countReq.onsuccess = () => resolve((countReq.result || 0) > 0)
+      countReq.onerror = () => reject(countReq.error)
+    })
+
+    if (hasAnyCurrent) return
+
+    for (const legacyName of LEGACY_DB_NAMES) {
+      try {
+        const legacyDb: IDBDatabase = await new Promise((resolve, reject) => {
+          const req = globalThis.indexedDB.open(legacyName)
+          req.onsuccess = () => resolve(req.result)
+          req.onerror = () => reject(req.error)
+        })
+
+        // If legacy DB doesn't have activities, skip
+        if (!legacyDb.objectStoreNames.contains('activities')) {
+          legacyDb.close()
+          continue
+        }
+
+        // Read all legacy activities
+        const legacyActivities = await new Promise<any[]>((resolve, reject) => {
+          const tx = legacyDb.transaction('activities', 'readonly')
+          const store = tx.objectStore('activities')
+          const getAllReq = store.getAll()
+          getAllReq.onsuccess = () => resolve(getAllReq.result as any[])
+          getAllReq.onerror = () => reject(getAllReq.error)
+        })
+
+        // Import into current DB
+        if (legacyActivities.length > 0) {
+          await new Promise<void>((resolve, reject) => {
+            const tx = db.transaction('activities', 'readwrite')
+            const store = tx.objectStore('activities')
+            for (const rec of legacyActivities) {
+              // Best-effort: insert as-is; keyPath is 'id'
+              try {
+                store.put(rec)
+              } catch {
+                // ignore individual failures
+              }
+            }
+            tx.oncomplete = () => resolve()
+            tx.onerror = () => reject(tx.error)
+            tx.onabort = () => reject(tx.error)
+          })
+        }
+
+        // Migrate pets if present and empty in current
+        if (legacyDb.objectStoreNames.contains('pets')) {
+          const hasAnyPetsCurrent = await new Promise<boolean>((resolve, reject) => {
+            const tx = db.transaction('pets', 'readonly')
+            const store = tx.objectStore('pets')
+            const countReq = store.count()
+            countReq.onsuccess = () => resolve((countReq.result || 0) > 0)
+            countReq.onerror = () => reject(countReq.error)
+          })
+          if (!hasAnyPetsCurrent) {
+            const legacyPets = await new Promise<any[]>((resolve, reject) => {
+              const tx = legacyDb.transaction('pets', 'readonly')
+              const store = tx.objectStore('pets')
+              const getAllReq = store.getAll()
+              getAllReq.onsuccess = () => resolve(getAllReq.result as any[])
+              getAllReq.onerror = () => reject(getAllReq.error)
+            })
+            if (legacyPets.length > 0) {
+              await new Promise<void>((resolve, reject) => {
+                const tx = db.transaction('pets', 'readwrite')
+                const store = tx.objectStore('pets')
+                for (const rec of legacyPets) {
+                  try { store.put(rec) } catch {}
+                }
+                tx.oncomplete = () => resolve()
+                tx.onerror = () => reject(tx.error)
+                tx.onabort = () => reject(tx.error)
+              })
+            }
+          }
+        }
+
+        // Migrate images if present and empty in current
+        if (legacyDb.objectStoreNames.contains('images')) {
+          const hasAnyImagesCurrent = await new Promise<boolean>((resolve, reject) => {
+            const tx = db.transaction('images', 'readonly')
+            const store = tx.objectStore('images')
+            const countReq = store.count()
+            countReq.onsuccess = () => resolve((countReq.result || 0) > 0)
+            countReq.onerror = () => reject(countReq.error)
+          })
+          if (!hasAnyImagesCurrent) {
+            const legacyImages = await new Promise<any[]>((resolve, reject) => {
+              const tx = legacyDb.transaction('images', 'readonly')
+              const store = tx.objectStore('images')
+              const getAllReq = store.getAll()
+              getAllReq.onsuccess = () => resolve(getAllReq.result as any[])
+              getAllReq.onerror = () => reject(getAllReq.error)
+            })
+            if (legacyImages.length > 0) {
+              await new Promise<void>((resolve, reject) => {
+                const tx = db.transaction('images', 'readwrite')
+                const store = tx.objectStore('images')
+                for (const rec of legacyImages) {
+                  try { store.put(rec) } catch {}
+                }
+                tx.oncomplete = () => resolve()
+                tx.onerror = () => reject(tx.error)
+                tx.onabort = () => reject(tx.error)
+              })
+            }
+          }
+        }
+
+        legacyDb.close()
+        // After a successful migration from any legacy DB, stop checking others
+        break
+      } catch (e) {
+        // If opening legacy DB fails, move to next name
+        continue
+      }
+    }
   }
 
   // ========== Activities ==========

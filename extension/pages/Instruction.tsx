@@ -111,9 +111,9 @@ export default function Instruction() {
               
               // Show refresh prompt
               const shouldRefresh = confirm(
-                '宠物已启动！\n\n' +
-                '点击"确定"刷新当前页面，桌宠将立即显示。\n' +
-                '点击"取消"稍后手动刷新。'
+                'Your pet is here！\n\n' +
+                'Press "OK" to refresh current page and see your pet immediately.\n' +
+                'Click "Cancel" to refresh manually later.'
               )
               if (shouldRefresh) {
                 // Get active tab and reload it
